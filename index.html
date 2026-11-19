@@ -330,6 +330,7 @@ const A={
   },
   abort(){if(confirm('確定流局？會保留座位與名單，回到開局配置。')){const names=S.seats.map(s=>s.name),r=S.roster,b=S.boardId,w=S.winRule;const room=S.room,db=S.dbUrl;S=newGame(b,names);S.roster=r;S.winRule=w;S.room=room;S.dbUrl=db;render();}},
   reset(){if(confirm('確定完全重置？名單與紀錄都會清空。')){S=newGame('ynlb');render();}},
+  clearLog(){if(confirm('確定清空遊戲紀錄？清空後無法復原（遊戲進度不受影響）。')){S.log=[];render();toast('已清空遊戲紀錄')}},
   copyLog(){const t=[...S.log].reverse().map(l=>`[${l.tag}] ${l.t}`).join('\n');navigator.clipboard?.writeText(t).then(()=>toast('已複製遊戲紀錄'),()=>toast('複製失敗'));},
 };
 
@@ -945,7 +946,7 @@ function render(){
   h+=scriptPanel();
   // 紀錄
   if(S.log.length){
-    h+=`<div class="card"><h2><span>📜 遊戲紀錄</span><button class="link" onclick="A.copyLog()">複製</button></h2>
+    h+=`<div class="card"><h2><span>📜 遊戲紀錄</span><span><button class="link" onclick="A.copyLog()">複製</button><button class="link" style="color:var(--wolf)" onclick="A.clearLog()">清空</button></span></h2>
       <div class="log">${S.log.map(l=>`<div><span class="small">[${l.tag}]</span> ${esc(l.t)}</div>`).join('')}</div></div>`;
   }
   $('#app').innerHTML=h;
