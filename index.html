@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>狼人殺 - Playfly 狼人殺</title>
+<title>Playfly 狼人殺</title>
 <style>
 :root{
   --bg:#0b1020;--panel:#121a2e;--panel2:#18223a;--line:#25304a;--text:#e6ebf5;--mute:#8592ad;
@@ -533,7 +533,7 @@ const P={
 };
 function renderPlayer(){
   const p=PLAYER,d=p.pub;
-  let h=`<div class="card"><div class="row between"><div class="row"><span style="font-size:22px">🐺</span><h1>狼人殺</h1><span class="pill gold">房間 ${esc(p.room)}</span></div>${syncDot()}</div>
+  let h=`<div class="card"><div class="row between"><div class="row"><span style="font-size:22px">🐺</span><h1>Playfly 狼人殺</h1><span class="pill gold">房間 ${esc(p.room)}</span></div>${syncDot()}</div>
     ${d?`<div class="row between" style="margin-top:8px"><span style="color:var(--gold);font-weight:700">${esc(d.board)}</span><span class="pill violet">${esc(d.phaseTxt)}</span></div>`:''}</div>`;
   if(!d){h+=`<div class="card" style="text-align:center">${Sync.status==='error'?'❌ 連不上房間，請確認連結是否正確':'連線中…'}</div>`;$('#app').innerHTML=h;return}
   h+=Sound.on?`<div class="small" style="text-align:center;margin-bottom:6px;color:var(--vil)">🔊 音效已開啟，上帝公布死訊時會同步播放</div>`
