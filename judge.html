@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>狼人殺 - 上帝主控台</title>
+<style>
+:root{
+  --bg:#0b1020;--panel:#121a2e;--panel2:#18223a;--line:#25304a;--text:#e6ebf5;--mute:#8592ad;
+  --gold:#f5b942;--god:#5aa9ff;--vil:#3fd18b;--wolf:#ff5d73;--violet:#6c5cff;--warn:#ff9f43;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;font-size:15px;line-height:1.45}
+.wrap{max-width:760px;margin:0 auto;padding:12px 12px 80px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.between{justify-content:space-between}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.grid6{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+h1{font-size:19px;margin:0}
+h2{font-size:16px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center}
+.small{font-size:12px;color:var(--mute)}
+.pill{font-size:12px;padding:3px 9px;border-radius:999px;border:1px solid}
+.pill.green{color:var(--vil);border-color:#1f6e4b;background:#0f2a21}
+.pill.violet{color:#b9b2ff;border-color:#3d3590;background:#1b1840}
+.pill.gold{color:var(--gold);border-color:#7a5a1c;background:#2a2010}
+.pill.red{color:var(--wolf);border-color:#7a2633;background:#2a1016}
+.stat{border-radius:14px;padding:10px;text-align:center;border:1px solid}
+.stat .t{font-size:12px;font-weight:700}
+.stat .n{font-size:28px;font-weight:800;letter-spacing:2px}
+.stat.god{border-color:#1f3c66;background:#0f1a30}.stat.god .t{color:var(--god)}
+.stat.vil{border-color:#1b4d39;background:#0e1f1a}.stat.vil .t{color:var(--vil)}
+.stat.wolf{border-color:#5e2230;background:#200f15}.stat.wolf .t{color:var(--wolf)}
+select,input,textarea{width:100%;background:#0d1426;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:15px;font-family:inherit}
+select:disabled{opacity:.45}
+textarea{min-height:90px;resize:vertical}
+button{font-family:inherit;font-size:14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:9px 12px;cursor:pointer;font-weight:600}
+button:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{background:var(--violet);border-color:var(--violet);color:#fff}
+.btn-teal{background:#127a8f;border-color:#127a8f;color:#fff}
+.btn-red{background:#3a1119;border-color:#7a2633;color:var(--wolf)}
+.btn-gold{background:#2a2010;border-color:#7a5a1c;color:var(--gold)}
+.btn-green{background:#0f2a21;border-color:#1f6e4b;color:var(--vil)}
+.btn-block{width:100%;padding:13px;font-size:16px}
+.link{background:none;border:none;color:var(--god);text-decoration:underline;padding:4px;font-size:13px}
+.seat{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:10px}
+.seat .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.seat .no{color:var(--gold);font-weight:800}
+.seat select{margin-top:6px;padding:7px 8px;font-size:14px}
+.ov{overflow:hidden;border-radius:10px;padding:6px 2px;text-align:center;background:var(--panel2);border:1px solid var(--line);font-size:12px;cursor:pointer;position:relative;min-height:62px}
+.ov b{display:block;font-size:16px}
+.ov.dead{opacity:.35;text-decoration:line-through}
+.ov .r{font-size:11px;font-weight:700}
+.ov .star{position:absolute;top:2px;right:4px;font-size:11px}
+.c-god{color:var(--god)}.c-vil{color:var(--vil)}.c-wolf{color:var(--wolf)}
+.step{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.step.dim{opacity:.55}
+.step .hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.step .hd b{font-size:16px}
+.script{font-size:13px;color:#c9b8ff;background:#17143a;border-radius:8px;padding:6px 9px;margin-bottom:8px}
+.kv{display:grid;grid-template-columns:86px 1fr;gap:8px;align-items:center;margin-top:6px}
+.result{margin-top:8px;padding:8px 10px;border-radius:10px;font-weight:700}
+.result.good{background:#0f2a21;color:var(--vil)}
+.result.bad{background:#2a1016;color:var(--wolf)}
+.result.info{background:#2a2010;color:var(--gold)}
+.announce{font-size:18px;font-weight:800;text-align:center;padding:14px;border-radius:12px;background:#1b1840;color:#fff;margin-bottom:10px}
+.log{max-height:260px;overflow:auto;font-size:13px}
+.log div{padding:4px 0;border-bottom:1px dashed var(--line)}
+.progress{height:8px;background:#0d1426;border-radius:99px;overflow:hidden;margin:8px 0}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,#127a8f,#3fd18b)}
+.overlay{position:fixed;inset:0;background:#060913;z-index:50;overflow:auto;padding:16px}
+.bigcard{max-width:420px;margin:30px auto;text-align:center;border-radius:20px;padding:30px 20px;border:2px solid}
+.bigcard .role{font-size:44px;font-weight:900;margin:14px 0}
+.hidden{display:none}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#222c47;border:1px solid var(--line);padding:10px 16px;border-radius:12px;z-index:99;font-size:14px}
+.collapse-h{cursor:pointer}
+.sline{padding:8px 10px;border-radius:10px;margin-bottom:6px;background:#141a33;cursor:pointer;border:1px solid transparent}
+.sline:hover{border-color:#3d3590}
+.sline .say{font-size:16px;font-weight:700;color:#efeaff}
+.sline .note{font-size:12px;color:var(--gold);margin-top:2px}
+.sline.sec{background:none;cursor:default;color:var(--mute);font-size:12px;font-weight:700;padding:8px 2px 2px;border:none}
+.prompter{max-width:640px;margin:0 auto;min-height:92vh;display:flex;flex-direction:column}
+.prompter .big{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;padding:20px}
+.prompter .big .say{font-size:34px;font-weight:900;line-height:1.35}
+.prompter .big .note{font-size:16px;color:var(--gold);margin-top:16px}
+.prompter .next{font-size:15px;color:var(--mute);text-align:center;margin-bottom:12px}
+.code{font-family:ui-monospace,Menlo,monospace;background:#0d1426;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:12px;word-break:break-all}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div id="overlay" class="overlay hidden"></div>
+<div id="toast" class="toast hidden"></div>
+
+<script>
+/* ===================== 雲端同步設定 =====================
+   填入你的 Firebase Realtime Database 網址（例：https://xxx-default-rtdb.asia-southeast1.firebasedatabase.app）
+   填在這裡之後，上帝端與玩家端都不用再手動輸入。留空則可在主控台畫面中貼上。 */
+const FIREBASE_DB_URL='';
+
+/* ===================== 角色與板型 ===================== */
+const ROLES={
+  '預言家':{camp:'god',desc:'每晚可查驗一名玩家是好人還是狼人。'},
+  '女巫':{camp:'god',desc:'有一瓶解藥與一瓶毒藥，同一晚不能同時使用；非首夜不可自救。'},
+  '獵人':{camp:'god',desc:'出局時可開槍帶走一名玩家（被毒死則不能開槍）。'},
+  '守衛':{camp:'god',desc:'每晚守護一名玩家免於狼刀，不能連續兩晚守同一人。同守同救會死亡。'},
+  '白痴':{camp:'god',desc:'被放逐時可翻牌免死，但之後失去投票權。'},
+  '騎士':{camp:'god',desc:'白天可決鬥一名玩家：對方是狼則對方出局，否則騎士出局。'},
+  '攝夢人':{camp:'god',desc:'每晚選一人入夢，夢遊者當晚免疫死亡；連續兩晚夢同一人則該人死亡；攝夢人夜間出局，夢遊者一起出局。'},
+  '黑市商人':{camp:'god',desc:'可將查驗、毒藥、獵槍三份禮物分送給三位不同玩家（不可給自己）。'},
+  '平民':{camp:'vil',desc:'沒有特殊技能，靠推理找出狼人。'},
+  '狼人':{camp:'wolf',desc:'每晚與狼隊友一起選擇擊殺一名玩家。'},
+  '狼王':{camp:'wolf',desc:'出局時可開槍帶走一名玩家（被毒死則不能開槍）。'},
+  '白狼王':{camp:'wolf',desc:'白天可自爆並帶走一名玩家。'},
+  '狼美人':{camp:'wolf',desc:'每晚魅惑一名玩家，狼美人出局時被魅惑者一起出局。'},
+  '狼兄':{camp:'wolf',desc:'首夜與狼弟相認。狼兄出局後，狼弟獲得刀人能力。'},
+  '狼弟':{camp:'wolf',desc:'首夜與狼兄相認。狼兄在場時不參與刀人，狼兄出局後才能刀人。'},
+};
+const CAMP_NAME={god:'神職',vil:'平民',wolf:'狼人'};
+const rep=(r,n)=>Array(n).fill(r);
+const BOARDS=[
+  {id:'ynlb',name:'預女獵白 (12人)',roles:['預言家','女巫','獵人','白痴',...rep('平民',4),...rep('狼人',4)]},
+  {id:'wkg',name:'狼王守衛 (12人)',roles:['預言家','女巫','獵人','守衛',...rep('平民',4),'狼王',...rep('狼人',3)]},
+  {id:'wwk',name:'白狼王騎士 (12人)',roles:['預言家','女巫','守衛','騎士',...rep('平民',4),'白狼王',...rep('狼人',3)]},
+  {id:'mkt',name:'黑市狼兄弟 (12人)',roles:['預言家','女巫','守衛','黑市商人',...rep('平民',4),'狼兄','狼弟',...rep('狼人',2)]},
+  {id:'drm',name:'攝夢人 (12人)',roles:['預言家','女巫','獵人','攝夢人',...rep('平民',4),...rep('狼人',4)]},
+  {id:'bty',name:'狼美人騎士 (12人)',roles:['預言家','女巫','守衛','騎士',...rep('平民',4),'狼美人',...rep('狼人',3)]},
+  {id:'s10',name:'預女獵 (10人)',roles:['預言家','女巫','獵人',...rep('平民',4),...rep('狼人',3)]},
+  {id:'s9',name:'預女獵 (9人)',roles:['預言家','女巫','獵人',...rep('平民',3),...rep('狼人',3)]},
+];
+const TEST_NAMES=['Ean','小前','郭郭','霏霏','JoJo','承','提摩','底迪','Lucas','King','皓晴','貓貓'];
+
+/* ===================== 狀態 ===================== */
+const KEY='werewolf-judge-v1';
+function freshAct(){return {guard:'',kill:'',save:false,poison:'',check:'',dream:'',charm:'',gCheck:'',gPoison:'',gGun:'',lCheck:'',lPoison:'',bro:false};}
+function newGame(boardId,keepNames){
+  const b=BOARDS.find(x=>x.id===boardId)||BOARDS[0];
+  const names=keepNames||[];
+  return {
+    boardId:b.id,winRule:'side',phase:'setup',night:1,day:0,setupOpen:true,
+    seats:b.roles.map((r,i)=>({name:names[i]||'',role:r,alive:true,confirmed:false,cause:''})),
+    roster:(names.length?names:[]).join('\n'),
+    sheriff:null,potions:{save:true,poison:true},lastGuard:'',lastDream:'',charm:'',
+    merchantUsed:false,lucky:{check:'',poison:'',gun:''},luckyUsed:{check:false,poison:false},
+    idiotRevealed:false,knightUsed:false,act:freshAct(),
+    lastDeaths:[],shots:[],log:[],winner:null,
+    room:'',dbUrl:'',hiddenDead:[],publicMsg:'等待上帝開局…',dayNotes:[],
+  };
+}
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}
+if(!S||!S.seats)S=newGame('ynlb');else S={...newGame(S.boardId),...S};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+/* ===================== 工具 ===================== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const N=()=>S.seats.length;
+const pad=i=>String(i+1).padStart(2,'0');
+const label=i=>{if(i===''||i==null)return '—';i=+i;const s=S.seats[i];return `${i+1}號${s&&s.name?'('+s.name+')':''}`};
+const camp=i=>ROLES[S.seats[i].role]?.camp;
+const seatsOf=role=>S.seats.map((s,i)=>s.role===role?i:-1).filter(i=>i>=0);
+const firstOf=role=>{const a=seatsOf(role);return a.length?a[0]:null};
+const alive=i=>S.seats[i]&&S.seats[i].alive;
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.remove('hidden');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.add('hidden'),2200)}
+function log(t){S.log.unshift({t,tag:S.phase==='night'?`第${S.night}夜`:S.phase==='day'?`第${S.day}天`:'配置'})}
+function seatOptions(sel,{onlyAlive=true,exclude=[],disable=[],empty='請選擇'}={}){
+  let h=`<option value="">${empty}</option>`;
+  S.seats.forEach((s,i)=>{
+    if(onlyAlive&&!s.alive)return;if(exclude.includes(i))return;
+    const dis=disable.includes(i);
+    h+=`<option value="${i}" ${String(sel)===String(i)?'selected':''} ${dis?'disabled':''}>${label(i)}${dis?'（不可選）':''}</option>`;
+  });
+  return h;
+}
+function counts(){
+  const c={god:[0,0],vil:[0,0],wolf:[0,0]};
+  S.seats.forEach(s=>{const k=ROLES[s.role]?.camp;if(!k)return;c[k][1]++;if(s.alive)c[k][0]++;});
+  return c;
+}
+
+/* ===================== 死亡與勝負 ===================== */
+function kill(i,cause){
+  i=+i;const s=S.seats[i];if(!s||!s.alive)return;
+  s.alive=false;s.cause=cause;
+  log(`${label(i)}【${s.role}】出局（${cause}）`);
+  const poisoned=cause.includes('毒');
+  if(['獵人','狼王'].includes(s.role)&&!poisoned)S.shots.push({from:i,kind:s.role});
+  else if(String(S.lucky.gun)===String(i)&&!poisoned)S.shots.push({from:i,kind:'獵槍幸運兒'});
+  if(s.role==='狼美人'&&S.charm!==''&&alive(S.charm))kill(S.charm,'被狼美人魅惑連帶出局');
+  if(S.sheriff===i)log(`⚠️ 警長 ${label(i)} 出局，請決定警徽移交或撕毀`);
+}
+function checkWin(){
+  if(S.winner)return;
+  const c=counts();
+  if(c.wolf[0]===0){S.winner='good';}
+  else if(S.winRule==='side'?(c.god[1]>0&&c.god[0]===0)||(c.vil[1]>0&&c.vil[0]===0):(c.god[0]+c.vil[0]===0)){S.winner='wolf';}
+  else if(c.wolf[0]>=c.god[0]+c.vil[0]&&S.winRule==='side'&&false){S.winner='wolf';}
+  if(S.winner){S.phase='end';S.hiddenDead=[];const t=S.winner==='good'?'🎉 好人陣營獲勝！':'🐺 狼人陣營獲勝！';log(t);S.publicMsg='遊戲結束，'+t;}
+}
+function pub(t){if(t!==S.publicMsg)S.msgBig=/死亡|平安夜|出局|帶走|獲勝|自爆|決鬥|放逐/.test(t);S.publicMsg=t;S.dayNotes.push(t);}
+
+/* ===================== 動作 ===================== */
+const A={
+  setBoard(id){const names=S.seats.map(s=>s.name);const roster=S.roster,room=S.room,db=S.dbUrl;S=newGame(id,names);S.roster=roster;S.room=room;S.dbUrl=db;render();},
+  search(q){const sel=$('#boardSel');[...sel.options].forEach(o=>o.hidden=q&&!o.text.includes(q));},
+  roster(v){S.roster=v;save();},
+  testNames(){S.roster=TEST_NAMES.slice(0,N()).map((n,i)=>`測試${pad(i)}(${n})`).join('\n');render();},
+  fillSeq(){const ns=S.roster.split('\n').map(x=>x.trim()).filter(Boolean);S.seats.forEach((s,i)=>s.name=ns[i]||'');render();toast('已依序填入座位');},
+  seatName(i,v){S.seats[i].name=v;render();},
+  seatRole(i,v){S.seats[i].role=v;render();},
+  shuffle(){
+    const roles=S.seats.map(s=>s.role);
+    for(let i=roles.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[roles[i],roles[j]]=[roles[j],roles[i]];}
+    S.seats.forEach((s,i)=>{s.role=roles[i];s.confirmed=false});
+    log('已隨機發牌');render();toast('已隨機打亂身分');
+  },
+  resetRoles(){const b=BOARDS.find(x=>x.id===S.boardId);S.seats.forEach((s,i)=>s.role=b.roles[i]);render();},
+  startReveal(){
+    if(S.seats.some(s=>!s.name.trim())&&!confirm('還有座位沒填名字，仍要開始看牌嗎？'))return;
+    S.phase='reveal';S.setupOpen=false;S.seats.forEach(s=>s.confirmed=false);S.publicMsg='請點自己的座位翻牌確認身分';
+    if(S.room){Sync.pushAll();render();toast('已把牌發到雲端，請玩家用手機翻牌');}
+    else{render();openReveal();}
+  },
+  winRule(v){S.winRule=v;render();},
+  toggleSetup(){S.setupOpen=!S.setupOpen;render();},
+  startNight(){S.phase='night';S.act=freshAct();S.dayNotes=[];S.hiddenDead=[];S.publicMsg=`第 ${S.night} 夜，天黑請閉眼`;log(`🌙 第${S.night}夜開始`);render();window.scrollTo(0,$('#nightCard')?.offsetTop-10||0);},
+  act(k,v){S.act[k]=v;render();},
+  resolveNight(){
+    const a=S.act,deaths=[];
+    const die=(i,c)=>{if(i===''||i==null)return;i=+i;if(!alive(i)||deaths.find(d=>d.i===i))return;deaths.push({i,c})};
+    const dreamT=a.dream===''?null:+a.dream;
+    // 狼刀
+    if(a.kill!==''){
+      const k=+a.kill,g=a.guard!==''&&+a.guard===k,sv=a.save;
+      if(dreamT===k){}
+      else if(g&&sv)die(k,'同守同救');
+      else if(!g&&!sv)die(k,'狼刀');
+    }
+    if(a.save){S.potions.save=false;log(`女巫使用解藥救 ${label(a.kill)}`)}
+    if(a.poison!==''){S.potions.poison=false;log(`女巫毒 ${label(a.poison)}`);if(+a.poison!==dreamT)die(a.poison,'女巫毒殺')}
+    if(a.lPoison!==''){S.luckyUsed.poison=true;log(`毒藥幸運兒毒 ${label(a.lPoison)}`);if(+a.lPoison!==dreamT)die(a.lPoison,'幸運兒毒殺')}
+    // 攝夢
+    if(dreamT!==null){
+      if(String(S.lastDream)===String(dreamT))die(dreamT,'連續兩晚被攝夢');
+      const dreamer=firstOf('攝夢人');
+      if(dreamer!==null&&deaths.find(d=>d.i===dreamer))die(dreamT,'攝夢人出局連帶');
+    }
+    S.lastGuard=a.guard;S.lastDream=a.dream;
+    if(a.guard!=='')log(`守衛守 ${label(a.guard)}`);
+    if(a.kill!=='')log(`狼人刀 ${label(a.kill)}`);
+    if(a.charm!==''){S.charm=+a.charm;log(`狼美人魅惑 ${label(a.charm)}`)}
+    if(a.check!=='')log(`預言家查驗 ${label(a.check)} → ${camp(+a.check)==='wolf'?'狼人':'好人'}`);
+    if(a.lCheck!==''){S.luckyUsed.check=true;log(`查驗幸運兒查驗 ${label(a.lCheck)} → ${camp(+a.lCheck)==='wolf'?'狼人':'好人'}`)}
+    if(!S.merchantUsed&&(a.gCheck!==''||a.gPoison!==''||a.gGun!=='')){
+      S.merchantUsed=true;S.lucky={check:a.gCheck,poison:a.gPoison,gun:a.gGun};
+      log(`黑市商人送禮：查驗→${label(a.gCheck)}、毒藥→${label(a.gPoison)}、獵槍→${label(a.gGun)}`);
+    }
+    S.shots=[];
+    deaths.forEach(d=>kill(d.i,d.c));
+    S.lastDeaths=deaths;S.hiddenDead=deaths.map(d=>d.i);S.deathsPublished=false;
+    S.day=S.night;S.phase='day';S.publicMsg='天亮了，請大家睜眼。';
+    log(deaths.length?`☀️ 天亮了，昨晚 ${deaths.map(d=>d.i+1+'號').join('、')} 死亡`:'☀️ 天亮了，昨晚是平安夜');
+    checkWin();render();window.scrollTo(0,0);
+  },
+  publishDeaths(){
+    const d=S.lastDeaths;S.hiddenDead=[];S.deathsPublished=true;
+    S.msgBig=true;pub(d.length?`天亮了。昨晚死亡的是 ${d.map(x=>x.i+1+'號').join('、')} 玩家。`:'天亮了。昨晚是平安夜。');render();toast(S.room?'死訊已同步播放到玩家手機':'已公布死訊');
+    if(S.godVoice!==false)Sound.announce(S.publicMsg);
+  },
+  setSheriff(v){S.sheriff=v===''?null:+v;if(v!==''){log(`👑 ${label(v)} 當選警長`);pub(`${+v+1}號當選警長。`);}render();},
+  shoot(idx){
+    const sh=S.shots[idx],t=$('#shot'+idx).value;
+    S.shots.splice(idx,1);
+    if(t===''){log(`${label(sh.from)}（${sh.kind}）選擇不開槍`);}
+    else{log(`${label(sh.from)}（${sh.kind}）開槍帶走 ${label(t)}`);kill(t,`被${sh.kind}開槍帶走`);pub(`${sh.from+1}號開槍帶走了 ${+t+1}號。`);}
+    checkWin();render();
+  },
+  exile(){
+    const v=$('#exileSel').value;if(v===''){toast('請選擇放逐對象');return}
+    const i=+v,s=S.seats[i];
+    if(s.role==='白痴'&&!S.idiotRevealed){S.idiotRevealed=true;log(`${label(i)} 被投票，翻牌為白痴，免於放逐（失去投票權）`);pub(`${i+1}號翻牌為白痴，免於放逐，但失去投票權。`);render();return}
+    kill(i,'投票放逐');pub(`${i+1}號被放逐出局，請發表遺言。`);checkWin();render();
+  },
+  noExile(){log('本輪無人被放逐（平票/棄票）');pub('本輪平票，無人被放逐。');render();},
+  explode(){
+    const v=$('#explodeSel').value;if(v===''){toast('請選擇自爆的狼');return}
+    const i=+v;
+    if(S.seats[i].role==='白狼王'){const t=$('#wwkSel')?.value;kill(i,'白狼王自爆');if(t)kill(t,'被白狼王帶走');}
+    else kill(i,'狼人自爆');
+    log('💥 狼人自爆，直接進入黑夜');pub(`${i+1}號狼人自爆，直接進入黑夜。`);checkWin();
+    if(S.phase!=='end'){S.night++;A.startNight();}else render();
+  },
+  duel(){
+    const k=firstOf('騎士'),v=$('#duelSel').value;if(v===''){toast('請選擇決鬥對象');return}
+    S.knightUsed=true;
+    if(camp(+v)==='wolf'){log(`⚔️ 騎士決鬥 ${label(v)}：是狼人！`);pub(`騎士決鬥 ${+v+1}號，他是狼人！`);kill(v,'被騎士決鬥');log('騎士決鬥成功，直接進入黑夜');checkWin();if(S.phase!=='end'){S.night++;A.startNight();return}}
+    else{log(`⚔️ 騎士決鬥 ${label(v)}：是好人，騎士以死謝罪`);pub(`騎士決鬥 ${+v+1}號，他是好人，騎士出局。`);kill(k,'決鬥失敗');checkWin();}
+    render();
+  },
+  nextNight(){if(S.shots.length&&!confirm('還有人沒處理開槍，確定進入黑夜？'))return;S.night++;A.startNight();},
+  toggleAlive(i){
+    const s=S.seats[i];
+    if(S.phase==='setup'||S.phase==='reveal')return;
+    if(s.alive){if(confirm(`手動將 ${label(i)} 標記為出局？`)){kill(i,'上帝手動判定');checkWin();render();}}
+    else if(confirm(`將 ${label(i)} 復活（更正錯誤）？`)){s.alive=true;s.cause='';log(`${label(i)} 被上帝更正為存活`);if(S.phase==='end'){S.winner=null;S.phase='day'}render();}
+  },
+  abort(){if(confirm('確定流局？會保留座位與名單，回到開局配置。')){const names=S.seats.map(s=>s.name),r=S.roster,b=S.boardId,w=S.winRule;const room=S.room,db=S.dbUrl;S=newGame(b,names);S.roster=r;S.winRule=w;S.room=room;S.dbUrl=db;render();}},
+  reset(){if(confirm('確定完全重置？名單與紀錄都會清空。')){S=newGame('ynlb');render();}},
+  copyLog(){const t=[...S.log].reverse().map(l=>`[${l.tag}] ${l.t}`).join('\n');navigator.clipboard?.writeText(t).then(()=>toast('已複製遊戲紀錄'),()=>toast('複製失敗'));},
+};
+
+/* ===================== 雲端同步（Firebase Realtime Database REST + 串流） ===================== */
+const enc=(o,k)=>{const s=unescape(encodeURIComponent(JSON.stringify(o)));let r='';for(let i=0;i<s.length;i++)r+=String.fromCharCode(s.charCodeAt(i)^k.charCodeAt(i%k.length));return btoa(r).split('').reverse().join('')};
+const dec=(t,k)=>{const s=atob(t.split('').reverse().join(''));let r='';for(let i=0;i<s.length;i++)r+=String.fromCharCode(s.charCodeAt(i)^k.charCodeAt(i%k.length));return JSON.parse(decodeURIComponent(escape(r)))};
+function setPath(root,path,data,merge){
+  const parts=path.split('/').filter(Boolean);
+  if(!parts.length){if(merge&&root&&typeof root==='object'&&data&&typeof data==='object'){for(const k in data){if(data[k]===null)delete root[k];else root[k]=data[k]}return root}return data}
+  root=(root&&typeof root==='object')?root:{};
+  let o=root;for(let i=0;i<parts.length-1;i++){if(!o[parts[i]]||typeof o[parts[i]]!=='object')o[parts[i]]={};o=o[parts[i]]}
+  const last=parts[parts.length-1];
+  if(merge){o[last]=setPath(o[last],'',data,true)}else if(data===null)delete o[last];else o[last]=data;
+  return root;
+}
+const Sync={
+  status:'off',es:null,conf:{},timer:null,lastPub:'',
+  base(){return (FIREBASE_DB_URL||S.dbUrl||'').trim().replace(/\/+$/,'')},
+  url(room,path){return `${this.base()}/rooms/${room}${path?'/'+path:''}.json`},
+  async req(path,method,body){
+    const r=await fetch(this.url(S.room,path),{method,headers:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});
+    if(!r.ok)throw new Error('HTTP '+r.status);return r.json();
+  },
+  listen(room,path,onData){
+    const es=new EventSource(this.url(room,path));let data=null;
+    const h=merge=>e=>{try{const m=JSON.parse(e.data);data=setPath(data,m.path,m.data,merge);onData(data)}catch(err){}};
+    es.addEventListener('put',h(false));es.addEventListener('patch',h(true));
+    es.addEventListener('cancel',()=>{this.status='error';onData(data)});
+    es.addEventListener('auth_revoked',()=>{this.status='error'});
+    es.onopen=()=>{this.status='on';if(typeof render==='function'&&!PLAYER)render()};
+    es.onerror=()=>{this.status=es.readyState===2?'error':'connecting';if(!PLAYER)updateSyncDot();else renderPlayer()};
+    return es;
+  },
+  start(){
+    if(!S.room||!this.base())return;
+    if(this.es)this.es.close();
+    this.status='connecting';
+    this.es=this.listen(S.room,'confirmed',d=>{
+      this.conf=d||{};let ch=false;
+      S.seats.forEach((s,i)=>{const v=!!this.conf['s'+i];if(s.confirmed!==v&&S.phase!=='setup'){s.confirmed=v;ch=true}});
+      if(ch)render();
+    });
+    this.pushPublic(true);
+  },
+  publicObj(){
+    const b=BOARDS.find(x=>x.id===S.boardId)||BOARDS[0];
+    const phaseTxt={setup:'開局配置中',reveal:'看牌中',night:`第 ${S.night} 夜`,day:`第 ${S.day} 天`,end:'遊戲結束'}[S.phase];
+    return {board:b.name,n:N(),names:S.seats.map(s=>s.name||''),
+      alive:S.seats.map((s,i)=>s.alive||S.hiddenDead.includes(i)),
+      phase:S.phase,phaseTxt,sheriff:S.sheriff===null?-1:S.sheriff,msg:S.publicMsg||'',msgId:(S.publicMsg!==S._lastMsg?(S._lastMsg=S.publicMsg,S.msgId=Date.now()):S.msgId)||0,big:!!S.msgBig,
+      winner:S.winner||'',roles:S.phase==='end'?S.seats.map(s=>s.role):null,
+      composition:b.roles.reduce((m,r)=>(m[r]=(m[r]||0)+1,m),{}),ts:Date.now()};
+  },
+  pushPublic(force){
+    if(!S.room||!this.base())return;
+    clearTimeout(this.timer);
+    this.timer=setTimeout(async()=>{
+      const p=this.publicObj(),key=JSON.stringify({...p,ts:0});
+      if(!force&&key===this.lastPub)return;this.lastPub=key;
+      try{await this.req('public','PUT',p)}catch(e){this.status='error';updateSyncDot()}
+    },250);
+  },
+  async pushAll(){
+    const cards={};
+    S.seats.forEach((s,i)=>{
+      const r=ROLES[s.role];let mates=[];
+      if(r.camp==='wolf'&&s.role!=='狼弟')mates=S.seats.map((x,j)=>j).filter(j=>j!==i&&camp(j)==='wolf'&&S.seats[j].role!=='狼弟').map(j=>`${label(j)} ${S.seats[j].role}`);
+      if(s.role==='狼弟'||s.role==='狼兄'){const o=firstOf(s.role==='狼弟'?'狼兄':'狼弟');if(o!==null)mates.push(`${label(o)} ${S.seats[o].role}`)}
+      cards['s'+i]=enc({role:s.role,camp:r.camp,desc:r.desc,mates},S.room+'#'+i);
+    });
+    this.conf={};
+    try{await this.req('','PATCH',{cards,confirmed:null,public:this.publicObj()});this.status='on'}catch(e){this.status='error';toast('雲端寫入失敗，請檢查資料庫網址與規則')}
+    render();
+  },
+};
+function updateSyncDot(){const d=$('#syncDot');if(d)d.outerHTML=syncDot()}
+function syncDot(){const m={on:['#3fd18b','已連線'],connecting:['#f5b942','連線中'],error:['#ff5d73','連線失敗'],off:['#8592ad','未啟用']}[Sync.status]||['#8592ad',''];return `<span id="syncDot" class="small"><span class="dot" style="background:${m[0]}"></span>${m[1]}</span>`}
+function playerLink(){
+  const base=location.href.split('#')[0];
+  return `${base}#room=${S.room}${FIREBASE_DB_URL?'':'&db='+encodeURIComponent(Sync.base())}`;
+}
+Object.assign(A,{
+  dbUrl(v){S.dbUrl=v.trim();save();},
+  createRoom(){
+    if(!Sync.base()){toast('請先填入 Firebase 資料庫網址');return}
+    const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';S.room=Array.from({length:5},()=>c[Math.floor(Math.random()*c.length)]).join('');
+    log(`📡 建立房間 ${S.room}`);Sync.start();render();
+  },
+  leaveRoom(){if(!confirm('關閉雲端同步？玩家手機將不再更新。'))return;if(Sync.es)Sync.es.close();S.room='';Sync.status='off';render();},
+  copyLink(){navigator.clipboard?.writeText(playerLink()).then(()=>toast('已複製玩家連結'),()=>toast('複製失敗，請長按連結手動複製'))},
+  replay(){S.msgId=Date.now();S._lastMsg=S.publicMsg;S.msgBig=true;save();Sync.pushPublic(true);if(S.godVoice!==false)Sound.announce(S.publicMsg);toast('已重新播放到玩家手機');},
+  godVoice(){S.godVoice=S.godVoice===false;render();},
+  pushMsg(){const v=$('#customMsg').value.trim();if(!v)return;S.publicMsg=v;S.msgBig=true;$('#customMsg').value='';render();toast('已推送到玩家手機');},
+});
+function syncPanel(){
+  if(S.room)return `<div class="step" style="border-color:#1f6e4b;margin-top:12px">
+    <div class="row between"><b>📡 雲端房間 <span style="color:var(--gold);letter-spacing:2px">${S.room}</span></b>${syncDot()}</div>
+    <div class="small" style="margin:6px 0">把下面連結傳給玩家（LINE 群組即可），玩家打開後選自己的座位：</div>
+    <div class="code">${esc(playerLink())}</div>
+    <div class="row" style="margin-top:8px"><button class="btn-green" onclick="A.copyLink()">📋 複製玩家連結</button><button onclick="A.leaveRoom()">關閉同步</button></div>
+    <div class="small" style="margin-top:8px">目前公告：「${esc(S.publicMsg)}」</div>
+    <div class="row" style="margin-top:6px"><button class="btn-gold" onclick="A.replay()">🔁 重播公告到所有手機</button><button class="${S.godVoice===false?'':'btn-green'}" onclick="A.godVoice()">🔊 上帝手機也播放：${S.godVoice===false?'關':'開'}</button></div></div>`;
+  return `<div class="step" style="margin-top:12px"><div class="row between"><b>📡 多手機同步（選用）</b>${syncDot()}</div>
+    <div class="small" style="margin:6px 0">開啟後，玩家用自己的手機翻牌、看公告與存活狀況。</div>
+    ${FIREBASE_DB_URL?'':`<input placeholder="Firebase Realtime Database 網址 https://….firebasedatabase.app" value="${esc(S.dbUrl)}" onchange="A.dbUrl(this.value)" style="margin-bottom:8px">`}
+    <button class="btn-green" onclick="A.createRoom()">建立房間</button></div>`;
+}
+
+/* ===================== 音效與語音 ===================== */
+const Sound={
+  ctx:null,on:false,
+  unlock(){
+    try{this.ctx=this.ctx||new (window.AudioContext||window.webkitAudioContext)();this.ctx.resume()}catch(e){}
+    try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}
+    this.on=true;
+  },
+  chime(){
+    try{const c=this.ctx||(this.ctx=new (window.AudioContext||window.webkitAudioContext)());
+      [[523,0],[659,.18],[784,.36]].forEach(([f,t])=>{const o=c.createOscillator(),g=c.createGain();o.frequency.value=f;o.type='sine';
+        g.gain.setValueAtTime(0,c.currentTime+t);g.gain.linearRampToValueAtTime(.35,c.currentTime+t+.03);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t+.6);
+        o.connect(g);g.connect(c.destination);o.start(c.currentTime+t);o.stop(c.currentTime+t+.7)});}catch(e){}
+  },
+  announce(t){this.chime();try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}setTimeout(()=>speak(t),900)},
+};
+function showPopup(t){
+  const o=$('#overlay');o.classList.remove('hidden');
+  o.innerHTML=`<div class="prompter" onclick="closePopup()"><div class="big"><div style="font-size:60px">📢</div><div class="say" style="font-size:36px">${esc(t)}</div>
+    <div class="small" style="margin-top:24px">點畫面關閉</div></div></div>`;
+  clearTimeout(showPopup._t);showPopup._t=setTimeout(closePopup,12000);
+}
+function closePopup(){$('#overlay').classList.add('hidden')}
+
+/* ===================== 玩家端 ===================== */
+let PLAYER=null;
+function initPlayer(params){
+  PLAYER={room:params.get('room').toUpperCase(),db:params.get('db')||'',pub:null,seat:null,card:null,show:false,confirmed:false};
+  if(!FIREBASE_DB_URL)S={dbUrl:PLAYER.db};else S={dbUrl:''};
+  try{const v=localStorage.getItem('ww-seat-'+PLAYER.room);if(v!==null&&v!=='')PLAYER.seat=+v;PLAYER.confirmed=localStorage.getItem('ww-conf-'+PLAYER.room+'-'+PLAYER.seat)==='1'}catch(e){}
+  Sync.status='connecting';
+  Sync.listen(PLAYER.room,'public',d=>{
+    const prevPhase=PLAYER.pub?.phase,first=!PLAYER.pub;PLAYER.pub=d;
+    if(d&&d.msgId&&d.msgId!==PLAYER.msgId){
+      const isNew=!first&&PLAYER.msgId!==undefined;PLAYER.msgId=d.msgId;
+      if(isNew&&d.big){showPopup(d.msg);if(Sound.on)Sound.announce(d.msg);else{try{navigator.vibrate&&navigator.vibrate(300)}catch(e){}}}
+    }else if(d&&PLAYER.msgId===undefined)PLAYER.msgId=d.msgId||0;
+    if(d&&d.phase==='reveal'&&prevPhase&&prevPhase!=='reveal'){PLAYER.card=null;PLAYER.confirmed=false;PLAYER.show=false;}
+    if(d&&d.phase==='setup'){PLAYER.card=null;PLAYER.confirmed=false;}
+    renderPlayer();
+  });
+  renderPlayer();
+}
+const P={
+  pick(i){PLAYER.seat=i;PLAYER.card=null;PLAYER.show=false;PLAYER.confirmed=false;try{localStorage.setItem('ww-seat-'+PLAYER.room,i)}catch(e){}renderPlayer()},
+  change(){if(confirm('要換座位嗎？'))P.pick(null);try{localStorage.removeItem('ww-seat-'+PLAYER.room)}catch(e){}},
+  async flip(){
+    if(PLAYER.show){PLAYER.show=false;renderPlayer();return}
+    if(!PLAYER.card){
+      try{const r=await fetch(Sync.url(PLAYER.room,'cards/s'+PLAYER.seat));const t=await r.json();if(!t){toast('上帝還沒發牌');return}PLAYER.card=dec(t,PLAYER.room+'#'+PLAYER.seat)}
+      catch(e){toast('讀取身分失敗，請重試');return}
+    }
+    PLAYER.show=true;renderPlayer();
+  },
+  async confirm(){
+    try{const r=await fetch(Sync.url(PLAYER.room,'confirmed/s'+PLAYER.seat),{method:'PUT',body:'true'});if(!r.ok)throw 0;
+      PLAYER.confirmed=true;PLAYER.show=false;try{localStorage.setItem('ww-conf-'+PLAYER.room+'-'+PLAYER.seat,'1')}catch(e){}renderPlayer();toast('已回報上帝')}
+    catch(e){toast('回報失敗，請重試')}
+  },
+};
+function renderPlayer(){
+  const p=PLAYER,d=p.pub;
+  let h=`<div class="card"><div class="row between"><div class="row"><span style="font-size:22px">🐺</span><h1>狼人殺</h1><span class="pill gold">房間 ${esc(p.room)}</span></div>${syncDot()}</div>
+    ${d?`<div class="row between" style="margin-top:8px"><span style="color:var(--gold);font-weight:700">${esc(d.board)}</span><span class="pill violet">${esc(d.phaseTxt)}</span></div>`:''}</div>`;
+  if(!d){h+=`<div class="card" style="text-align:center">${Sync.status==='error'?'❌ 連不上房間，請確認連結是否正確':'連線中…'}</div>`;$('#app').innerHTML=h;return}
+  h+=Sound.on?`<div class="small" style="text-align:center;margin-bottom:6px;color:var(--vil)">🔊 音效已開啟，上帝公布死訊時會同步播放</div>`
+    :`<button class="btn-gold btn-block" style="margin-bottom:10px" onclick="Sound.unlock();Sound.announce('音效已開啟');renderPlayer()">🔊 點我開啟聲音（才聽得到死訊播報）</button>`;
+  h+=`<div class="announce">📢 ${esc(d.msg||'…')}</div>`;
+  if(p.seat===null||p.seat>=d.n){
+    h+=`<div class="card"><h2>請選擇你的座位</h2><div class="grid3">${d.names.map((n,i)=>`<button style="padding:14px 4px" onclick="P.pick(${i})"><div style="font-size:22px;color:var(--gold)">${pad(i)}</div><div class="small">${esc(n)||'—'}</div></button>`).join('')}</div></div>`;
+  }else{
+    const c=p.card,col=c?(c.camp==='wolf'?'var(--wolf)':c.camp==='god'?'var(--god)':'var(--vil)'):'var(--line)';
+    h+=`<div class="card"><div class="row between"><b style="color:var(--gold);font-size:18px">#${pad(p.seat)} ${esc(d.names[p.seat])}</b><button class="link" onclick="P.change()">換座位</button></div>`;
+    if(d.phase==='setup')h+=`<p class="small">等待上帝發牌…</p>`;
+    else{
+      if(p.show&&c)h+=`<div class="bigcard" style="margin:12px 0;border-color:${col}"><div class="small">你的身分是</div><div class="role" style="color:${col}">${esc(c.role)}</div>
+        <div class="pill" style="color:${col};border-color:${col}">${CAMP_NAME[c.camp]}陣營</div><p>${esc(c.desc)}</p>
+        ${c.mates&&c.mates.length?`<p style="color:var(--wolf)">隊友：${c.mates.map(esc).join('、')}</p>`:''}</div>`;
+      else h+=`<div class="bigcard" style="margin:12px 0;border-color:var(--line);padding:40px 20px"><div style="font-size:50px">🂠</div><div class="small">確認周圍沒人偷看再翻牌</div></div>`;
+      h+=`<div class="grid2"><button class="btn-teal" onclick="P.flip()">${p.show?'🙈 蓋牌':'👀 翻牌看身分'}</button>
+        <button class="${p.confirmed?'btn-green':'btn-primary'}" ${p.confirmed||!p.card?'disabled':''} onclick="P.confirm()">${p.confirmed?'✅ 已確認':'我記住了，回報上帝'}</button></div>`;
+    }
+    h+=`</div>`;
+  }
+  const alv=d.alive.filter(Boolean).length;
+  h+=`<div class="card"><h2><span>👥 場上狀況</span><span style="color:var(--vil)">存活 ${alv} / ${d.n}</span></h2>
+    <div class="grid6">${d.names.map((n,i)=>`<div class="ov ${d.alive[i]?'':'dead'}" style="${i===p.seat?'border-color:var(--gold)':''}">${d.sheriff===i?'<span class="star">👑</span>':''}<b>${pad(i)}</b><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(n)||'—'}</div>
+      ${d.roles?`<div class="r c-${ROLES[d.roles[i]]?.camp}">${esc(d.roles[i])}</div>`:''}</div>`).join('')}</div>
+    <div class="small" style="margin-top:8px">本局配置：${Object.entries(d.composition||{}).map(([r,n])=>`${r}${n>1?'×'+n:''}`).join('、')}</div></div>`;
+  $('#app').innerHTML=h;
+}
+
+/* ===================== 上帝宣告稿 ===================== */
+function scriptLines(){
+  const L=[],sec=t=>L.push({sec:t}),say=(t,note)=>L.push({say:t,note:note||''});
+  const has=r=>seatsOf(r).length>0,a=S.act,b=BOARDS.find(x=>x.id===S.boardId)||BOARDS[0];
+  const comp=Object.entries(b.roles.reduce((m,r)=>(m[r]=(m[r]||0)+1,m),{}));
+  if(S.phase==='setup'||S.phase==='reveal'){
+    sec('開場');
+    say(`歡迎來到狼人殺！今天這局是「${b.name}」，共 ${N()} 位玩家。`);
+    say(`本局角色有：${comp.map(([r,n])=>n>1?`${r}${n}位`:r).join('、')}。`);
+    const gods=comp.filter(([r])=>ROLES[r].camp==='god').map(([r])=>r);
+    gods.forEach(r=>say(`${r}：${ROLES[r].desc}`));
+    comp.filter(([r])=>ROLES[r].camp==='wolf'&&r!=='狼人').forEach(([r])=>say(`${r}：${ROLES[r].desc}`));
+    say(S.winRule==='side'?'勝利條件是屠邊：狼人殺光所有神職或所有平民即獲勝；好人放逐所有狼人即獲勝。':'勝利條件是屠城：狼人殺光所有好人才獲勝；好人放逐所有狼人即獲勝。');
+    say('警長擁有 1.5 票，並決定發言順序。首夜死亡的玩家可以發表遺言。');
+    sec('看牌');
+    say(S.room?'請大家打開群組裡的連結，選自己的座位號碼，翻牌確認身分，記住後按「回報上帝」。':'請依座位順序拿手機看牌，看完蓋牌傳給下一位。');
+    say('確認身分後請不要再看牌，也不要透露給任何人。');
+    return L;
+  }
+  if(S.phase==='night'){
+    sec(`第 ${S.night} 夜`);
+    say('天黑請閉眼。','全員低頭，確認沒人睜眼');
+    const R=(role,open,ask,note,close)=>{if(!has(role))return;const dead=!alive(firstOf(role));say(open,dead?'此角色已出局，照常喊流程、停頓幾秒':'');ask.forEach((t,j)=>say(t,j===ask.length-1?note:''));say(close)};
+    R('攝夢人','攝夢人請睜眼。',['攝夢人，今晚你要讓誰入夢？'],a.dream!==''?`已選：${label(a.dream)}`:'','攝夢人請閉眼。');
+    R('守衛','守衛請睜眼。',['守衛，今晚你要守護誰？'],a.guard!==''?`已選：${label(a.guard)}`:'空守','守衛請閉眼。');
+    if(S.night===1&&has('狼兄')&&has('狼弟')){say('狼兄、狼弟請睜眼，互相確認身分。',`${label(firstOf('狼兄'))} 狼兄、${label(firstOf('狼弟'))} 狼弟`);say('狼兄、狼弟請閉眼。')}
+    say('狼人請睜眼。');
+    if(S.night===1)say('狼人請互相確認身分。');
+    say('狼人，今晚你們要殺誰？請統一意見後指給我。',a.kill!==''?`刀口：${label(a.kill)}`:'尚未落刀');
+    say('狼人請閉眼。');
+    R('狼美人','狼美人請睜眼。',['狼美人，今晚你要魅惑誰？'],a.charm!==''?`已選：${label(a.charm)}`:'','狼美人請閉眼。');
+    if(has('女巫')){
+      say('女巫請睜眼。');
+      if(S.potions.save)say('昨晚倒牌的是他，你要使用解藥嗎？',a.kill===''?'空刀：比劃無人':`比劃 ${+a.kill+1}號${a.save?'｜✅ 已救':''}`);
+      else say('你的解藥已經用過了。','不告知刀口');
+      if(S.potions.poison)say('你要使用毒藥嗎？要毒誰？',a.poison!==''?`毒：${label(a.poison)}`:'不使用');
+      say('女巫請閉眼。');
+    }
+    R('預言家','預言家請睜眼。',['預言家，今晚你要查驗誰？','他的身分是——'],a.check!==''?(camp(+a.check)==='wolf'?'👎 狼人（手勢朝下）':'👍 好人（手勢朝上）'):'','預言家請閉眼。');
+    if(has('黑市商人')){
+      if(!S.merchantUsed)R('黑市商人','黑市商人請睜眼。',['請選擇三位幸運兒，分別送出查驗、毒藥、獵槍。'],'','黑市商人請閉眼。');
+      else R('黑市商人','黑市商人請睜眼。',['（禮物已送出）'],'','黑市商人請閉眼。');
+      say('獲得查驗技能的玩家請睜眼。你要查驗誰？',a.lCheck!==''?(camp(+a.lCheck)==='wolf'?'👎 狼人':'👍 好人'):'');say('請閉眼。');
+      say('獲得毒藥的玩家請睜眼。你要毒誰？');say('請閉眼。');
+      say('獲得獵槍的玩家請睜眼。你今晚的開槍狀態是——','比 👍 可開槍 / 👎 被毒不能開槍');say('請閉眼。');
+    }
+    ['獵人','狼王'].forEach(r=>{if(!has(r))return;const i=firstOf(r),p=String(a.poison)===String(i)||String(a.lPoison)===String(i);say(`${r}請睜眼。你今晚的開槍狀態是——`,p?'👎 被毒，不能開槍':'👍 可以開槍');say(`${r}請閉眼。`)});
+    say('天亮了，請大家睜眼。','按「天亮結算死訊」');
+    return L;
+  }
+  if(S.phase==='day'){
+    const d=S.lastDeaths,dm=d.length?`昨晚死亡的是 ${d.map(x=>x.i+1+'號').join('、')} 玩家。`:'昨晚是平安夜。';
+    sec(`第 ${S.day} 天`);
+    say('天亮了，請大家睜眼。');
+    if(S.day===1){
+      sec('警長競選');
+      say('現在開始競選警長，想上警的玩家請舉手。');
+      say('請上警玩家依序發表競選宣言，從最小號開始。','也可隨機決定起始位置');
+      say('上警發言結束，還要退水的玩家請現在舉手。');
+      say('請警下玩家投票，3、2、1，投票！');
+      say(S.sheriff!==null?`${S.sheriff+1}號當選警長。`:'恭喜___號當選警長。',S.sheriff===null?'在白天面板選擇警長':'');
+      sec('公布死訊');
+    }
+    say(dm,S.deathsPublished?'已推送到玩家手機':'記得按「公布死訊」推送到手機');
+    if(S.day===1&&d.length)say('首夜死亡的玩家可以發表遺言。');
+    else if(d.length)say('非首夜死亡沒有遺言。','依你們的規則');
+    d.forEach(x=>{const r=S.seats[x.i].role;if(['獵人','狼王'].includes(r)||String(S.lucky.gun)===String(x.i))say(`${x.i+1}號，你可以發動技能。`,x.c.includes('毒')?'被毒，不能開槍':'可開槍')});
+    sec('發言與投票');
+    say(S.sheriff!==null&&alive(S.sheriff)?`請警長 ${S.sheriff+1}號 決定從左邊還是右邊開始發言。`:'請從死者的下一位開始，依序發言。');
+    say('發言結束，現在開始放逐投票。');
+    say('3、2、1，投票！請指向你要放逐的玩家。');
+    if(S.dayNotes.length){sec('本日結果');S.dayNotes.forEach(t=>say(t))}
+    S.shots.forEach(sh=>say(`${sh.from+1}號，請發動你的技能。`,`${sh.kind}可開槍`));
+    say('天黑請閉眼。','按「進入下一夜」');
+    return L;
+  }
+  if(S.phase==='end'){
+    sec('遊戲結束');
+    say(`遊戲結束，${S.winner==='good'?'好人':'狼人'}陣營獲勝！`);
+    say('現在公布所有人的身分：');
+    S.seats.forEach((s,i)=>say(`${i+1}號 ${s.name||''}，${s.role}。`));
+    say('感謝大家，辛苦了！');
+  }
+  return L;
+}
+let PROMPT={i:0,voice:false};
+function speak(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='zh-TW';u.rate=0.95;const v=speechSynthesis.getVoices().find(v=>/zh[-_](TW|HK|CN)/i.test(v.lang));if(v)u.voice=v;speechSynthesis.speak(u)}catch(e){toast('此瀏覽器不支援語音')}}
+function sayLines(){return scriptLines().filter(l=>!l.sec)}
+function openPrompter(start){PROMPT.i=start||0;renderPrompter();}
+function renderPrompter(){
+  const ls=sayLines(),o=$('#overlay');if(!ls.length)return;
+  PROMPT.i=Math.max(0,Math.min(PROMPT.i,ls.length-1));const l=ls[PROMPT.i],nx=ls[PROMPT.i+1];
+  o.classList.remove('hidden');
+  o.innerHTML=`<div class="prompter">
+    <div class="row between"><span class="small">📢 宣告稿 ${PROMPT.i+1} / ${ls.length}</span>
+      <div class="row"><button class="${PROMPT.voice?'btn-green':''}" onclick="PROMPT.voice=!PROMPT.voice;renderPrompter()">🔊 自動朗讀${PROMPT.voice?'開':'關'}</button><button onclick="closePrompter()">✕</button></div></div>
+    <div class="big" onclick="promptGo(1)"><div class="say">${esc(l.say)}</div>${l.note?`<div class="note">〔上帝提示〕${esc(l.note)}</div>`:''}</div>
+    <div class="next">${nx?'下一句：'+esc(nx.say):'— 本段結束 —'}</div>
+    <div class="grid3"><button onclick="promptGo(-1)">◀ 上一句</button><button onclick="speak(sayLines()[PROMPT.i].say)">🔊 唸出</button><button class="btn-primary" onclick="promptGo(1)">下一句 ▶</button></div>
+    ${S.room?`<button class="btn-green btn-block" style="margin-top:8px" onclick="S.publicMsg=sayLines()[PROMPT.i].say;save();Sync.pushPublic();toast('已推送到玩家手機')">📢 把這句推送到玩家手機</button>`:''}
+    <p class="small" style="text-align:center">點畫面中央也能前進</p></div>`;
+  if(PROMPT.voice)speak(l.say);
+}
+function promptGo(d){PROMPT.i+=d;renderPrompter();}
+function closePrompter(){try{speechSynthesis.cancel()}catch(e){}$('#overlay').classList.add('hidden');render();}
+function scriptPanel(){
+  const ls=scriptLines();let k=-1;
+  return `<div class="card" style="border-color:#3d3590"><h2 class="collapse-h" onclick="S.scriptOpen=!S.scriptOpen;render()"><span>📢 上帝宣告稿</span><span class="small">${S.scriptOpen===false?'點擊展開':'點一句朗讀・點擊收合'}</span></h2>
+    ${S.scriptOpen===false?'':`<button class="btn-primary btn-block" style="margin-bottom:10px" onclick="openPrompter(0)">🎤 全螢幕提詞模式</button>
+    ${ls.map(l=>{if(l.sec)return `<div class="sline sec">${esc(l.sec)}</div>`;k++;return `<div class="sline" onclick="speak(this.querySelector('.say').textContent)" ondblclick="openPrompter(${k})"><div class="say">${esc(l.say)}</div>${l.note?`<div class="note">〔${esc(l.note)}〕</div>`:''}</div>`}).join('')}`}
+    ${S.room?`<div class="row" style="margin-top:8px"><input id="customMsg" placeholder="自訂公告推送到玩家手機…" style="flex:1"><button class="btn-green" onclick="A.pushMsg()">推送</button></div>`:''}
+  </div>`;
+}
+
+/* ===================== 看牌（傳手機翻牌） ===================== */
+function openReveal(){
+  const o=$('#overlay');o.classList.remove('hidden');
+  const done=S.seats.filter(s=>s.confirmed).length;
+  o.innerHTML=`<div style="max-width:520px;margin:0 auto">
+    <h1 style="text-align:center;margin:10px 0">🃏 輪流看牌</h1>
+    <p class="small" style="text-align:center">把手機傳給玩家，請他點自己的座位號碼翻牌，看完蓋牌後傳給下一位。</p>
+    <div class="progress"><i style="width:${done/N()*100}%"></i></div>
+    <p style="text-align:center;font-weight:700">${done} / ${N()} 人已確認</p>
+    <div class="grid3">${S.seats.map((s,i)=>`<button style="padding:16px 4px;${s.confirmed?'opacity:.4':''}" onclick="revealSeat(${i})"><div style="font-size:22px;color:var(--gold)">${pad(i)}</div><div class="small">${esc(s.name)||'未命名'}</div><div style="font-size:12px">${s.confirmed?'✅ 已看':'待翻牌'}</div></button>`).join('')}</div>
+    <div style="margin-top:20px" class="row">
+      <button class="btn-block" onclick="closeReveal()">上帝收回手機（返回主控台）</button>
+    </div></div>`;
+}
+function revealSeat(i){
+  const s=S.seats[i],o=$('#overlay');
+  o.innerHTML=`<div class="bigcard" style="border-color:var(--line);background:var(--panel)">
+    <div style="font-size:20px;color:var(--gold);font-weight:800">#${pad(i)} ${esc(s.name)}</div>
+    <p>確認是你本人，周圍沒人偷看嗎？</p>
+    <button class="btn-primary btn-block" onclick="flipCard(${i})">翻牌看身分</button>
+    <button class="btn-block" style="margin-top:10px" onclick="openReveal()">返回</button></div>`;
+}
+function flipCard(i){
+  const s=S.seats[i],r=ROLES[s.role],col=r.camp==='wolf'?'var(--wolf)':r.camp==='god'?'var(--god)':'var(--vil)';
+  let extra='';
+  if(r.camp==='wolf'&&s.role!=='狼弟'){
+    const mates=S.seats.map((x,j)=>j).filter(j=>j!==i&&camp(j)==='wolf'&&S.seats[j].role!=='狼弟');
+    extra=`<p class="small">你的狼隊友：${mates.map(j=>label(j)).join('、')||'無'}</p>`;
+  }
+  $('#overlay').innerHTML=`<div class="bigcard" style="border-color:${col};background:var(--panel)">
+    <div class="small">#${pad(i)} ${esc(s.name)} 的身分是</div>
+    <div class="role" style="color:${col}">${s.role}</div>
+    <div class="pill" style="color:${col};border-color:${col}">${CAMP_NAME[r.camp]}陣營</div>
+    <p style="margin-top:16px">${r.desc}</p>${extra}
+    <button class="btn-green btn-block" onclick="confirmSeat(${i})">我記住了，蓋牌</button></div>`;
+}
+function confirmSeat(i){S.seats[i].confirmed=true;save();openReveal();}
+function closeReveal(){$('#overlay').classList.add('hidden');render();}
+
+/* ===================== 夜晚流程 ===================== */
+function nightSteps(){
+  const a=S.act,steps=[],has=r=>seatsOf(r).length>0;
+  const deadNote=r=>{const i=firstOf(r);return i!==null&&!alive(i)?'<div class="small" style="color:var(--warn)">（此角色已出局，仍照常喊流程避免洩漏資訊）</div>':''};
+  const roleSeat=r=>{const i=firstOf(r);return i===null?'':`<span class="small">${label(i)}</span>`};
+  const step=(title,sub,body,role)=>steps.push(`<div class="step ${role&&!alive(firstOf(role))?'dim':''}"><div class="hd"><b>${title}</b><span class="small">${sub}</span></div>${body}${role?deadNote(role):''}</div>`);
+  const sc=t=>`<div class="script">🗣 ${t}</div>`;
+
+  steps.push(`<div class="script" style="font-size:15px">🗣 天黑請閉眼。</div>`);
+
+  if(has('攝夢人')){
+    const me=firstOf('攝夢人');
+    step('攝夢人請睜眼',roleSeat('攝夢人'),sc('攝夢人請睜眼，今晚你要選擇誰入夢？')+
+      `<div class="kv"><span>入夢目標</span><select ${!alive(me)?'disabled':''} onchange="A.act('dream',this.value)">${seatOptions(a.dream,{exclude:[me]})}</select></div>`+
+      (S.lastDream!==''&&a.dream!==''&&String(S.lastDream)===String(a.dream)?`<div class="result bad">⚠️ 連續兩晚夢同一人，該玩家今晚會死亡</div>`:'')+
+      (S.lastDream!==''?`<div class="small" style="margin-top:6px">上一晚入夢：${label(S.lastDream)}</div>`:''),'攝夢人');
+  }
+  if(has('守衛')){
+    const me=firstOf('守衛'),lg=S.lastGuard===''?[]:[+S.lastGuard];
+    step('守衛請睜眼',roleSeat('守衛'),sc('守衛請睜眼，今晚你要守護誰？')+
+      `<div class="kv"><span>守護目標</span><select ${!alive(me)?'disabled':''} onchange="A.act('guard',this.value)">${seatOptions(a.guard,{disable:lg,empty:'空守'})}</select></div>`+
+      (S.lastGuard!==''?`<div class="small" style="margin-top:6px">上一晚守：${label(S.lastGuard)}（今晚不可再守）</div>`:''),'守衛');
+  }
+  if(S.night===1&&has('狼兄')&&has('狼弟')){
+    step('狼兄狼弟請睜眼','狼兄狼弟相認',sc('狼兄、狼弟請睜眼，互相確認身分。')+
+      `<div class="result info">確認目標：${label(firstOf('狼兄'))}（狼兄）、${label(firstOf('狼弟'))}（狼弟）</div>
+       <div class="row" style="margin-top:8px"><button class="${a.bro?'btn-green':''}" onclick="A.act('bro',${!a.bro})">${a.bro?'✅ 已相認':'點擊確認'}</button></div>`);
+  }
+  // 狼人
+  const broAlive=has('狼兄')&&alive(firstOf('狼兄'));
+  const wolves=S.seats.map((s,i)=>i).filter(i=>alive(i)&&camp(i)==='wolf'&&!(S.seats[i].role==='狼弟'&&broAlive));
+  step(broAlive&&has('狼弟')?'狼兄與小狼請睜眼':'狼人請睜眼','落刀',
+    sc('狼人請睜眼，今晚要殺誰？')+`<div class="small">應睜眼：${wolves.map(i=>`${i+1}號(${S.seats[i].role})`).join('、')||'無'}</div>`+
+    `<div class="kv"><span>擊殺目標</span><select onchange="A.act('kill',this.value)">${seatOptions(a.kill,{empty:'空刀'})}</select></div>`);
+  if(has('狼美人')){
+    const me=firstOf('狼美人');
+    step('狼美人請睜眼',roleSeat('狼美人'),sc('狼美人請睜眼，今晚要魅惑誰？')+
+      `<div class="kv"><span>魅惑目標</span><select ${!alive(me)?'disabled':''} onchange="A.act('charm',this.value)">${seatOptions(a.charm,{exclude:[me]})}</select></div>`+
+      (S.charm!==''?`<div class="small" style="margin-top:6px">目前被魅惑：${label(S.charm)}</div>`:''),'狼美人');
+  }
+  if(has('女巫')){
+    const me=firstOf('女巫'),k=a.kill;
+    const selfBlock=k!==''&&+k===me&&S.night>1;
+    const canSave=S.potions.save&&k!==''&&!selfBlock&&a.poison===''&&alive(me);
+    step('女巫請睜眼',roleSeat('女巫'),sc(S.potions.save?`女巫請睜眼，昨晚他死了（比手勢指 ${k===''?'無人':(+k+1)+'號'}），你要用解藥嗎？你要用毒藥嗎？`:'女巫請睜眼（解藥已用，不告知刀口），你要用毒藥嗎？')+
+      `<div class="result info">原始刀口：${k===''?'等待落刀 / 空刀':label(k)}</div>
+      <div class="grid2" style="margin-top:8px">
+        <div><div class="small">解藥 ${S.potions.save?'（剩 1）':'（已用完）'}</div>
+          <button class="${a.save?'btn-green':''}" style="width:100%;margin-top:4px" ${!canSave&&!a.save?'disabled':''} onclick="A.act('save',${!a.save})">${a.save?'✅ 救人':'未使用'}</button>
+          ${selfBlock?'<div class="small" style="color:var(--warn)">非首夜不可自救</div>':''}</div>
+        <div><div class="small">毒藥 ${S.potions.poison?'（剩 1）':'（已用完）'}</div>
+          <select style="margin-top:4px" ${!S.potions.poison||a.save||!alive(me)?'disabled':''} onchange="A.act('poison',this.value)">${seatOptions(a.poison,{empty:'不使用'})}</select></div>
+      </div>`,'女巫');
+  }
+  if(has('預言家')){
+    const me=firstOf('預言家');
+    step('預言家請睜眼',roleSeat('預言家'),sc('預言家請睜眼，今晚要查驗誰？')+
+      `<div class="kv"><span>查驗目標</span><select ${!alive(me)?'disabled':''} onchange="A.act('check',this.value)">${seatOptions(a.check,{exclude:[me],empty:'選擇查驗目標'})}</select></div>`+
+      (a.check!==''?(camp(+a.check)==='wolf'?`<div class="result bad">👎 他是狼人（手勢朝下）</div>`:`<div class="result good">👍 他是好人（手勢朝上）</div>`):''),'預言家');
+  }
+  if(has('黑市商人')){
+    const me=firstOf('黑市商人');
+    if(!S.merchantUsed){
+      const used=[a.gCheck,a.gPoison,a.gGun].filter(x=>x!=='').map(Number);
+      const opt=(k)=>seatOptions(a[k],{exclude:[me],disable:used.filter(x=>String(x)!==String(a[k])),empty:'選擇玩家'});
+      step('黑市商人請睜眼','贈送三份禮物',sc('黑市商人請睜眼，請選擇三位幸運兒分送禮物。')+
+        `<div class="small" style="color:var(--gold)">🎁 選擇三位幸運兒（不可選擇自己、不可重複）</div>
+        <div class="kv"><span>🔮 查驗</span><select ${!alive(me)?'disabled':''} onchange="A.act('gCheck',this.value)">${opt('gCheck')}</select></div>
+        <div class="kv"><span>🧪 毒藥</span><select ${!alive(me)?'disabled':''} onchange="A.act('gPoison',this.value)">${opt('gPoison')}</select></div>
+        <div class="kv"><span>🔫 獵槍</span><select ${!alive(me)?'disabled':''} onchange="A.act('gGun',this.value)">${opt('gGun')}</select></div>`,'黑市商人');
+    } else step('黑市商人請睜眼','禮物已送出',sc('黑市商人請睜眼……請閉眼。')+`<div class="small">已送出：查驗→${label(S.lucky.check)}、毒藥→${label(S.lucky.poison)}、獵槍→${label(S.lucky.gun)}</div>`,'黑市商人');
+    const holder=k=>S.merchantUsed?S.lucky[k]:a['g'+k[0].toUpperCase()+k.slice(1)];
+    const hc=holder('check'),hp=holder('poison'),hg=holder('gun');
+    step('查驗幸運兒請睜眼','獲得查驗技能(一次)',sc('獲得查驗技能的玩家請睜眼，你要查驗誰？')+
+      `<div class="result info">確認目標：${hc===''?'首夜待指派':label(hc)}</div>`+
+      (hc!==''&&alive(hc)&&!S.luckyUsed.check?`<div class="kv"><span>查驗目標</span><select onchange="A.act('lCheck',this.value)">${seatOptions(a.lCheck,{exclude:[+hc]})}</select></div>`+(a.lCheck!==''?(camp(+a.lCheck)==='wolf'?`<div class="result bad">👎 狼人</div>`:`<div class="result good">👍 好人</div>`):''):(S.luckyUsed.check?'<div class="small">技能已使用</div>':'')));
+    step('毒藥幸運兒請睜眼','獲得毒藥技能(一次)',sc('獲得毒藥的玩家請睜眼，你要毒誰？')+
+      `<div class="result info">確認目標：${hp===''?'首夜待指派':label(hp)}</div>`+
+      (hp!==''&&alive(hp)&&!S.luckyUsed.poison?`<div class="kv"><span>毒殺目標</span><select onchange="A.act('lPoison',this.value)">${seatOptions(a.lPoison,{exclude:[+hp],empty:'不使用'})}</select></div>`:(S.luckyUsed.poison?'<div class="small">技能已使用</div>':'')));
+    const gunPoisoned=hg!==''&&(String(a.poison)===String(hg)||String(a.lPoison)===String(hg));
+    step('獵槍幸運兒請睜眼','給予開槍手勢',sc('獲得獵槍的玩家請睜眼，你今晚的開槍狀態是——')+
+      `<div class="row between"><span class="small">🔫 幸運兒：${hg===''?'未指派':label(hg)}</span>${hg===''?'':gunPoisoned?'<span class="pill red">👎 被毒，不可開槍</span>':'<span class="pill green">👍 狀態良好（可開槍）</span>'}</div>`);
+  }
+  if(has('獵人')){
+    const h=firstOf('獵人'),p=String(a.poison)===String(h)||String(a.lPoison)===String(h);
+    step('獵人請睜眼',roleSeat('獵人'),sc('獵人請睜眼，你今晚的開槍狀態是——')+
+      `<div class="row">${p?'<span class="pill red">👎 被毒，不可開槍</span>':'<span class="pill green">👍 狀態良好（可開槍）</span>'}</div>`,'獵人');
+  }
+  if(has('狼王')){
+    const h=firstOf('狼王'),p=String(a.poison)===String(h)||String(a.lPoison)===String(h);
+    step('狼王請睜眼',roleSeat('狼王'),sc('狼王請睜眼，你今晚的開槍狀態是——')+
+      `<div class="row">${p?'<span class="pill red">👎 被毒，不可開槍</span>':'<span class="pill green">👍 狀態良好（可開槍）</span>'}</div>`,'狼王');
+  }
+  return steps.join('');
+}
+
+/* ===================== 白天 ===================== */
+function dayPanel(){
+  const d=S.lastDeaths;
+  let h=`<div class="announce">${d.length?`昨晚 ${d.map(x=>x.i+1+'號').join('、')} 死亡`:'昨晚是平安夜 🌕'}</div>`;
+  if(d.length)h+=`<div class="small" style="margin-bottom:10px">（上帝可見死因：${d.map(x=>`${x.i+1}號 ${x.c}`).join('、')}）</div>`;
+  h+=S.deathsPublished?`<div class="row between" style="margin-bottom:10px"><span class="small" style="color:var(--vil)">✅ 死訊已公布${S.room?'並同步播放':''}</span><button class="btn-gold" onclick="A.replay()">🔁 重播</button></div>`:`<button class="btn-gold btn-block" style="margin-bottom:10px;font-size:17px;padding:14px" onclick="A.publishDeaths()">📢 公布昨晚死訊${S.room?'（所有手機同步播放）':''}</button>`;
+  S.shots.forEach((sh,idx)=>{
+    h+=`<div class="step" style="border-color:#7a5a1c"><div class="hd"><b>🔫 ${label(sh.from)}（${sh.kind}）可開槍</b></div>
+      <div class="row"><select id="shot${idx}" style="flex:1">${seatOptions('',{exclude:[sh.from],empty:'不開槍'})}</select><button class="btn-gold" onclick="A.shoot(${idx})">確認</button></div></div>`;
+  });
+  if(S.day===1||S.sheriff===null||!alive(S.sheriff)){
+    h+=`<div class="step"><div class="hd"><b>👑 警長</b><span class="small">${S.day===1?'上警競選 / 投票結果':'警徽移交'}</span></div>
+      <select onchange="A.setSheriff(this.value)">${seatOptions(S.sheriff,{empty:'未指定 / 撕警徽'})}</select></div>`;
+  }
+  h+=`<div class="step"><div class="hd"><b>🗳 放逐投票</b><span class="small">${S.sheriff!==null&&alive(S.sheriff)?'警長 '+(S.sheriff+1)+'號 1.5票':''}</span></div>
+    <div class="row"><select id="exileSel" style="flex:1">${seatOptions('')}</select><button class="btn-red" onclick="A.exile()">放逐</button><button onclick="A.noExile()">平票</button></div>
+    ${S.idiotRevealed?`<div class="small" style="margin-top:6px">白痴 ${label(firstOf('白痴'))} 已翻牌，無投票權</div>`:''}</div>`;
+  const wolvesAlive=S.seats.map((s,i)=>i).filter(i=>alive(i)&&camp(i)==='wolf');
+  const wwk=firstOf('白狼王');
+  h+=`<div class="step"><div class="hd"><b>💥 狼人自爆</b><span class="small">自爆後直接入夜</span></div>
+    <div class="row"><select id="explodeSel" style="flex:1" onchange="document.getElementById('wwkBox').style.display=(this.value==='${wwk}')?'flex':'none'"><option value="">選擇自爆的狼</option>${wolvesAlive.map(i=>`<option value="${i}">${label(i)} ${S.seats[i].role}</option>`).join('')}</select><button class="btn-red" onclick="A.explode()">自爆</button></div>
+    <div class="row" id="wwkBox" style="display:none;margin-top:6px"><span class="small">白狼王帶走：</span><select id="wwkSel" style="flex:1">${seatOptions('',{exclude:wwk===null?[]:[wwk],empty:'不帶人'})}</select></div></div>`;
+  const kn=firstOf('騎士');
+  if(kn!==null&&alive(kn)&&!S.knightUsed){
+    h+=`<div class="step"><div class="hd"><b>⚔️ 騎士決鬥</b><span class="small">${label(kn)}，限一次</span></div>
+      <div class="row"><select id="duelSel" style="flex:1">${seatOptions('',{exclude:[kn]})}</select><button class="btn-gold" onclick="A.duel()">決鬥</button></div></div>`;
+  }
+  h+=`<button class="btn-primary btn-block" onclick="A.nextNight()">🌙 天黑請閉眼，進入第 ${S.night+1} 夜</button>`;
+  return h;
+}
+
+/* ===================== 主畫面 ===================== */
+function render(){
+  save();
+  const b=BOARDS.find(x=>x.id===S.boardId)||BOARDS[0],c=counts();
+  const phaseTxt={setup:'開局配置中',reveal:'玩家看牌中',night:`第 ${S.night} 夜`,day:`第 ${S.day} 天白天`,end:'遊戲結束'}[S.phase];
+  const allRoles=Object.keys(ROLES);
+  const done=S.seats.filter(s=>s.confirmed).length;
+  let h=`
+  <div class="card">
+    <div class="row between">
+      <div class="row"><span style="font-size:24px">🔨</span><h1>狼人殺主控台</h1><span class="pill green">● 自動存檔</span></div>
+      <span class="pill violet">${phaseTxt}</span>
+    </div>
+    <div class="row between" style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px">
+      <div><div style="color:var(--gold);font-weight:700">${b.name}</div><div class="small">警長：${S.sheriff===null?'未指定':label(S.sheriff)}</div></div>
+      <div class="row"><button class="btn-red" onclick="A.abort()">⦸ 流局</button><button onclick="A.reset()">重置</button></div>
+    </div>
+  </div>
+  <div class="grid3" style="margin-bottom:12px">
+    <div class="stat god"><div class="t">神職存活</div><div class="n">${c.god[0]} / ${c.god[1]}</div></div>
+    <div class="stat vil"><div class="t">民坑存活</div><div class="n">${c.vil[0]} / ${c.vil[1]}</div></div>
+    <div class="stat wolf"><div class="t">狼坑存活</div><div class="n">${c.wolf[0]} / ${c.wolf[1]}</div></div>
+  </div>`;
+  if(S.winner)h+=`<div class="announce" style="background:${S.winner==='good'?'#0f2a21':'#2a1016'};font-size:22px">${S.winner==='good'?'🎉 好人陣營獲勝！':'🐺 狼人陣營獲勝！'}</div>`;
+
+  // 開局配置
+  h+=`<div class="card"><h2 class="collapse-h" onclick="A.toggleSetup()"><span>👥 開局配置：板型與 ${N()} 席座位</span><span class="small">點擊${S.setupOpen?'收合':'展開'}</span></h2>`;
+  if(S.setupOpen){
+    const locked=S.phase!=='setup';
+    h+=`<div class="grid2">
+      <div><div class="small" style="color:var(--gold);font-weight:700">選擇板型（可搜尋）・${BOARDS.length} 個</div>
+        <input placeholder="🔍 搜尋板型（例：狼王、攝夢）" oninput="A.search(this.value)" style="margin:6px 0" ${locked?'disabled':''}>
+        <select id="boardSel" onchange="A.setBoard(this.value)" ${locked?'disabled':''}>${BOARDS.map(x=>`<option value="${x.id}" ${x.id===S.boardId?'selected':''}>${x.name}</option>`).join('')}</select>
+        <div class="small" style="margin-top:8px">勝利條件</div>
+        <select onchange="A.winRule(this.value)"><option value="side" ${S.winRule==='side'?'selected':''}>屠邊（神或民全滅狼勝）</option><option value="city" ${S.winRule==='city'?'selected':''}>屠城（好人全滅狼勝）</option></select>
+      </div>
+      <div><div class="row between"><span class="small">名單（一行一人）</span><span><button class="link" onclick="A.testNames()" ${locked?'disabled':''}>✏️ 測試名單</button><button class="link" onclick="A.fillSeq()" ${locked?'disabled':''}>⚡ 依序填入</button></span></div>
+        <textarea oninput="A.roster(this.value)" placeholder="小明&#10;小華&#10;..." ${locked?'disabled':''}>${esc(S.roster)}</textarea></div>
+    </div>
+    <div class="grid2" style="margin-top:12px">${S.seats.map((s,i)=>`
+      <div class="seat"><div class="hd"><span class="no">#${pad(i)} 席位</span>
+        <span class="small">${S.phase==='setup'?'':s.confirmed?'✅ 已看牌':'⏳ 待看牌'}</span></div>
+        <input value="${esc(s.name)}" placeholder="玩家名稱" onchange="A.seatName(${i},this.value)" ${locked?'disabled':''} style="padding:7px 8px;font-size:14px">
+        <select onchange="A.seatRole(${i},this.value)" ${locked?'disabled':''} class="c-${ROLES[s.role].camp}">${allRoles.map(r=>`<option ${r===s.role?'selected':''}>${r}</option>`).join('')}</select>
+      </div>`).join('')}</div>`;
+    if(S.phase==='setup'){
+      h+=`<div class="row" style="margin-top:12px"><button class="btn-gold" style="flex:1" onclick="A.shuffle()">🎲 隨機發牌</button><button style="flex:1" onclick="A.resetRoles()">↺ 還原板型順序</button></div>
+      <button class="btn-teal btn-block" style="margin-top:10px" onclick="A.startReveal()">🔒 鎖定座位並開始看牌</button>`;
+    }
+  }
+  h+=`</div>`;
+  h+=`<div class="card">${syncPanel().replace('margin-top:12px','margin:0')}</div>`;
+
+  if(S.phase==='reveal'){
+      h+=`<div class="card" style="border-color:#127a8f"><div class="row between"><b>📱 看牌進度</b><b style="color:var(--god)">${done} / ${N()} 人已確認</b></div>
+        <div class="progress"><i style="width:${done/N()*100}%"></i></div>
+        ${S.room?'<div class="small" style="margin-bottom:8px">玩家正在自己的手機上翻牌，確認後這裡會即時更新。沒手機的玩家可用下方「開啟看牌畫面」。</div>':''}<div class="grid2"><button class="btn-teal" onclick="openReveal()">🃏 開啟看牌畫面</button>
+        <button class="btn-primary" ${done<N()?'disabled':''} onclick="A.startNight()">✔ 全員完成，進入第 1 夜</button></div>
+        <button class="link" onclick="if(confirm('略過看牌直接開始？'))A.startNight()">略過看牌（玩家已用實體牌）</button></div>`;
+    }
+  // 存活總覽
+  if(S.phase!=='setup'){
+    const alv=S.seats.filter(s=>s.alive).length;
+    h+=`<div class="card"><h2><span>👥 全場存活總覽</span><span style="color:var(--vil)">存活 ${alv} / ${N()}</span></h2>
+      <div class="grid6">${S.seats.map((s,i)=>`<div class="ov ${s.alive?'':'dead'}" onclick="A.toggleAlive(${i})" title="${esc(s.cause)}">
+        ${S.sheriff===i?'<span class="star">👑</span>':''}<b>${pad(i)}</b><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(s.name)||'—'}</div>
+        <div class="r c-${ROLES[s.role].camp}">${s.role}</div></div>`).join('')}</div>
+      <div class="small" style="margin-top:6px">點擊座位可手動更正生死</div></div>`;
+  }
+  if(S.phase==='night'){
+    h+=`<div class="card" id="nightCard" style="border-color:#2c3f7a"><h2><span>🌙 夜間行動引導</span><span style="color:var(--gold);font-size:13px">第 ${S.night} 夜（請依序喚醒）</span></h2>
+      ${nightSteps()}
+      <button class="btn-primary btn-block" onclick="A.resolveNight()">☀️ 天亮結算死訊 →</button></div>`;
+  }
+  if(S.phase==='day')h+=`<div class="card" style="border-color:#7a5a1c"><h2><span>☀️ 第 ${S.day} 天白天</span></h2>${dayPanel()}</div>`;
+  if(S.phase==='end'&&S.shots.length)h+=`<div class="card">${S.shots.map((sh,idx)=>`<div class="step"><b>🔫 ${label(sh.from)} 可開槍</b><div class="row"><select id="shot${idx}" style="flex:1">${seatOptions('',{exclude:[sh.from],empty:'不開槍'})}</select><button class="btn-gold" onclick="A.shoot(${idx})">確認</button></div></div>`).join('')}</div>`;
+
+  h+=scriptPanel();
+  // 紀錄
+  if(S.log.length){
+    h+=`<div class="card"><h2><span>📜 遊戲紀錄</span><button class="link" onclick="A.copyLog()">複製</button></h2>
+      <div class="log">${S.log.map(l=>`<div><span class="small">[${l.tag}]</span> ${esc(l.t)}</div>`).join('')}</div></div>`;
+  }
+  $('#app').innerHTML=h;
+  if(S.room)Sync.pushPublic();
+}
+(function boot(){
+  const hp=new URLSearchParams(location.hash.slice(1));
+  if(hp.get('room')){initPlayer(hp);return}
+  render();
+  if(S.room)Sync.start();
+})();
+</script>
+</body>
+</html>
