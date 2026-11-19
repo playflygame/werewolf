@@ -98,7 +98,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 /* ===================== 雲端同步設定 =====================
    填入你的 Firebase Realtime Database 網址（例：https://xxx-default-rtdb.asia-southeast1.firebasedatabase.app）
    填在這裡之後，上帝端與玩家端都不用再手動輸入。留空則可在主控台畫面中貼上。 */
-const FIREBASE_DB_URL='';
+const FIREBASE_DB_URL='https://playfly-wolfhunt-default-rtdb.asia-southeast1.firebasedatabase.app';
 
 /* ===================== 角色與板型 ===================== */
 const ROLES={
@@ -177,6 +177,7 @@ function seatOptions(sel,{onlyAlive=true,exclude=[],disable=[],empty='請選擇'
 }
 function counts(){
   const c={god:[0,0],vil:[0,0],wolf:[0,0]};
+  if(S.drawMode&&S.phase==='reveal'&&S.deck){S.deck.forEach(d=>{const k=ROLES[d.role].camp;c[k][0]++;c[k][1]++});return c}
   S.seats.forEach(s=>{const k=ROLES[s.role]?.camp;if(!k)return;c[k][1]++;if(s.alive)c[k][0]++;});
   return c;
 }
@@ -207,7 +208,7 @@ const A={
   setBoard(id){const names=S.seats.map(s=>s.name);const roster=S.roster,room=S.room,db=S.dbUrl;S=newGame(id,names);S.roster=roster;S.room=room;S.dbUrl=db;render();},
   search(q){const sel=$('#boardSel');[...sel.options].forEach(o=>o.hidden=q&&!o.text.includes(q));},
   roster(v){S.roster=v;save();},
-  testNames(){S.roster=TEST_NAMES.slice(0,N()).map((n,i)=>`測試${pad(i)}(${n})`).join('\n');render();},
+  testNames(){S.roster=S.seats.map((x,i)=>`測試${pad(i)}`).join('\n');render();},
   fillSeq(){const ns=S.roster.split('\n').map(x=>x.trim()).filter(Boolean);S.seats.forEach((s,i)=>s.name=ns[i]||'');render();toast('已依序填入座位');},
   seatName(i,v){S.seats[i].name=v;render();},
   seatRole(i,v){S.seats[i].role=v;render();},
@@ -220,10 +221,30 @@ const A={
   resetRoles(){const b=BOARDS.find(x=>x.id===S.boardId);S.seats.forEach((s,i)=>s.role=b.roles[i]);render();},
   startReveal(){
     if(S.seats.some(s=>!s.name.trim())&&!confirm('還有座位沒填名字，仍要開始看牌嗎？'))return;
-    S.phase='reveal';S.setupOpen=false;S.seats.forEach(s=>s.confirmed=false);S.publicMsg='請點自己的座位翻牌確認身分';
+    S.drawMode=false;S.phase='reveal';S.setupOpen=false;S.seats.forEach(s=>s.confirmed=false);S.publicMsg='請點自己的座位翻牌確認身分';
     if(S.room){Sync.pushAll();render();toast('已把牌發到雲端，請玩家用手機翻牌');}
     else{render();openReveal();}
   },
+  startDraw(){
+    if(!S.room){toast('卡池抽牌需要先建立雲端房間');return}
+    if(S.seats.some(s=>!s.name.trim())&&!confirm('還有座位沒填名字，仍要開啟卡池嗎？'))return;
+    const roles=S.seats.map(s=>s.role);
+    for(let i=roles.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[roles[i],roles[j]]=[roles[j],roles[i]];}
+    S.deck=roles.map(r=>({role:r,owner:null}));S.drawMode=true;S.drawDone={};
+    S.seats.forEach(s=>{s.confirmed=false;s.drawn=false});
+    S.phase='reveal';S.setupOpen=false;S.publicMsg='卡池已開啟！請選自己的座位，從卡池抽一張牌';S.msgBig=true;
+    log('🃏 鎖定座位並開啟卡池');Sync.openPool();render();toast('卡池已開啟，等待玩家抽牌');
+  },
+  drawFor(i,k){
+    i=+i;if(!S.drawMode||S.seats[i].drawn)return;
+    const free=S.deck.map((d,j)=>d.owner===null?j:-1).filter(j=>j>=0);if(!free.length)return;
+    if(k==null||k===''||S.deck[k]?.owner!==null)k=free[Math.floor(Math.random()*free.length)];
+    S.deck[k].owner=i;S.seats[i].role=S.deck[k].role;S.seats[i].drawn=true;
+    log(`${label(i)} 抽到第 ${+k+1} 張牌`);
+    if(!S.seats.every(x=>x.drawn))Sync.pushCard(i);else{log('✅ 全員抽牌完成');S.publicMsg='全員抽牌完成，請確認身分後回報上帝';Sync.pushCards();}
+    render();
+  },
+  drawRest(){if(!confirm('幫所有還沒抽的座位隨機抽牌？'))return;S.seats.forEach((s,i)=>{if(!s.drawn)A.drawFor(i)});},
   winRule(v){S.winRule=v;render();},
   toggleSetup(){S.setupOpen=!S.setupOpen;render();},
   startNight(){S.phase='night';S.act=freshAct();S.dayNotes=[];S.hiddenDead=[];S.publicMsg=`第 ${S.night} 夜，天黑請閉眼`;log(`🌙 第${S.night}夜開始`);render();window.scrollTo(0,$('#nightCard')?.offsetTop-10||0);},
@@ -351,8 +372,28 @@ const Sync={
       S.seats.forEach((s,i)=>{const v=!!this.conf['s'+i];if(s.confirmed!==v&&S.phase!=='setup'){s.confirmed=v;ch=true}});
       if(ch)render();
     });
+    if(this.esReq)this.esReq.close();
+    this.esReq=this.listen(S.room,'requests',d=>{
+      if(!d||!S.drawMode||S.phase!=='reveal')return;
+      Object.keys(d).forEach(k=>{const i=+k.slice(1);if(S.seats[i]&&!S.seats[i].drawn)A.drawFor(i,d[k])});
+    });
     this.pushPublic(true);
   },
+  cardFor(i,withMates){
+    const s=S.seats[i],r=ROLES[s.role];let mates=[];
+    if(withMates){
+      if(r.camp==='wolf'&&s.role!=='狼弟')mates=S.seats.map((x,j)=>j).filter(j=>j!==i&&camp(j)==='wolf'&&S.seats[j].role!=='狼弟').map(j=>`${label(j)} ${S.seats[j].role}`);
+      if(s.role==='狼弟'||s.role==='狼兄'){const o=firstOf(s.role==='狼弟'?'狼兄':'狼弟');if(o!==null)mates.push(`${label(o)} ${S.seats[o].role}`)}
+    }
+    return enc({role:s.role,camp:r.camp,desc:r.desc,mates,matesPending:!withMates&&r.camp==='wolf'},S.room+'#'+i);
+  },
+  async openPool(){
+    this.conf={};
+    try{await this.req('','PATCH',{cards:null,confirmed:null,requests:null,public:this.publicObj()});this.status='on'}catch(e){this.status='error';toast('雲端寫入失敗，請檢查資料庫網址與規則')}
+    this.start();render();
+  },
+  async pushCard(i){try{await this.req('cards/s'+i,'PUT',this.cardFor(i,false))}catch(e){toast('寫入卡牌失敗')}},
+  async pushCards(){const cards={};S.seats.forEach((s,i)=>cards['s'+i]=this.cardFor(i,true));try{await this.req('cards','PUT',cards)}catch(e){toast('寫入卡牌失敗')}},
   publicObj(){
     const b=BOARDS.find(x=>x.id===S.boardId)||BOARDS[0];
     const phaseTxt={setup:'開局配置中',reveal:'看牌中',night:`第 ${S.night} 夜`,day:`第 ${S.day} 天`,end:'遊戲結束'}[S.phase];
@@ -360,7 +401,9 @@ const Sync={
       alive:S.seats.map((s,i)=>s.alive||S.hiddenDead.includes(i)),
       phase:S.phase,phaseTxt,sheriff:S.sheriff===null?-1:S.sheriff,msg:S.publicMsg||'',msgId:(S.publicMsg!==S._lastMsg?(S._lastMsg=S.publicMsg,S.msgId=Date.now()):S.msgId)||0,big:!!S.msgBig,
       winner:S.winner||'',roles:S.phase==='end'?S.seats.map(s=>s.role):null,
-      composition:b.roles.reduce((m,r)=>(m[r]=(m[r]||0)+1,m),{}),ts:Date.now()};
+      composition:b.roles.reduce((m,r)=>(m[r]=(m[r]||0)+1,m),{}),
+      drawMode:!!S.drawMode&&S.phase==='reveal',pool:S.drawMode&&S.deck?S.deck.map(d=>d.owner!==null):null,
+      drawn:S.seats.map(s=>!!s.drawn),allDrawn:S.seats.every(s=>s.drawn),ts:Date.now()};
   },
   pushPublic(force){
     if(!S.room||!this.base())return;
@@ -373,14 +416,9 @@ const Sync={
   },
   async pushAll(){
     const cards={};
-    S.seats.forEach((s,i)=>{
-      const r=ROLES[s.role];let mates=[];
-      if(r.camp==='wolf'&&s.role!=='狼弟')mates=S.seats.map((x,j)=>j).filter(j=>j!==i&&camp(j)==='wolf'&&S.seats[j].role!=='狼弟').map(j=>`${label(j)} ${S.seats[j].role}`);
-      if(s.role==='狼弟'||s.role==='狼兄'){const o=firstOf(s.role==='狼弟'?'狼兄':'狼弟');if(o!==null)mates.push(`${label(o)} ${S.seats[o].role}`)}
-      cards['s'+i]=enc({role:s.role,camp:r.camp,desc:r.desc,mates},S.room+'#'+i);
-    });
+    S.seats.forEach((s,i)=>cards['s'+i]=this.cardFor(i,true));
     this.conf={};
-    try{await this.req('','PATCH',{cards,confirmed:null,public:this.publicObj()});this.status='on'}catch(e){this.status='error';toast('雲端寫入失敗，請檢查資料庫網址與規則')}
+    try{await this.req('','PATCH',{cards,confirmed:null,requests:null,public:this.publicObj()});this.status='on'}catch(e){this.status='error';toast('雲端寫入失敗，請檢查資料庫網址與規則')}
     render();
   },
 };
@@ -455,7 +493,12 @@ function initPlayer(params){
       if(isNew&&d.big){showPopup(d.msg);if(Sound.on)Sound.announce(d.msg);else{try{navigator.vibrate&&navigator.vibrate(300)}catch(e){}}}
     }else if(d&&PLAYER.msgId===undefined)PLAYER.msgId=d.msgId||0;
     if(d&&d.phase==='reveal'&&prevPhase&&prevPhase!=='reveal'){PLAYER.card=null;PLAYER.confirmed=false;PLAYER.show=false;}
-    if(d&&d.phase==='setup'){PLAYER.card=null;PLAYER.confirmed=false;}
+    if(d&&d.phase==='setup'){PLAYER.card=null;PLAYER.confirmed=false;PLAYER.pending=null;}
+    if(d&&d.drawMode&&PLAYER.seat!==null&&d.drawn&&d.drawn[PLAYER.seat]&&!PLAYER.card&&!PLAYER.loading){
+      PLAYER.loading=true;P.load().then(ok=>{PLAYER.loading=false;if(ok){PLAYER.pending=null;PLAYER.show=true;try{navigator.vibrate&&navigator.vibrate(150)}catch(e){}renderPlayer()}});
+    }
+    if(d&&d.drawMode&&PLAYER.seat!==null&&d.drawn&&!d.drawn[PLAYER.seat]&&PLAYER.card){PLAYER.card=null;PLAYER.confirmed=false;}
+    if(d&&d.allDrawn&&PLAYER.card&&PLAYER.card.matesPending&&!PLAYER.loading){PLAYER.loading=true;P.load().then(()=>{PLAYER.loading=false;renderPlayer()})}
     renderPlayer();
   });
   renderPlayer();
@@ -463,8 +506,19 @@ function initPlayer(params){
 const P={
   pick(i){PLAYER.seat=i;PLAYER.card=null;PLAYER.show=false;PLAYER.confirmed=false;try{localStorage.setItem('ww-seat-'+PLAYER.room,i)}catch(e){}renderPlayer()},
   change(){if(confirm('要換座位嗎？'))P.pick(null);try{localStorage.removeItem('ww-seat-'+PLAYER.room)}catch(e){}},
+  async draw(k){
+    if(PLAYER.pending!=null)return;
+    if(!confirm(`確定抽第 ${k+1} 張牌嗎？抽了就不能換喔！`))return;
+    PLAYER.pending=k;renderPlayer();
+    try{const r=await fetch(Sync.url(PLAYER.room,'requests/s'+PLAYER.seat),{method:'PUT',body:JSON.stringify(k)});if(!r.ok)throw 0}
+    catch(e){PLAYER.pending=null;toast('抽牌失敗，請重試');renderPlayer()}
+  },
+  async load(){
+    try{const r=await fetch(Sync.url(PLAYER.room,'cards/s'+PLAYER.seat));const t=await r.json();if(!t)return false;PLAYER.card=dec(t,PLAYER.room+'#'+PLAYER.seat);return true}catch(e){return false}
+  },
   async flip(){
     if(PLAYER.show){PLAYER.show=false;renderPlayer();return}
+    if(!PLAYER.card||PLAYER.card.matesPending){await P.load()}
     if(!PLAYER.card){
       try{const r=await fetch(Sync.url(PLAYER.room,'cards/s'+PLAYER.seat));const t=await r.json();if(!t){toast('上帝還沒發牌');return}PLAYER.card=dec(t,PLAYER.room+'#'+PLAYER.seat)}
       catch(e){toast('讀取身分失敗，請重試');return}
@@ -490,11 +544,18 @@ function renderPlayer(){
   }else{
     const c=p.card,col=c?(c.camp==='wolf'?'var(--wolf)':c.camp==='god'?'var(--god)':'var(--vil)'):'var(--line)';
     h+=`<div class="card"><div class="row between"><b style="color:var(--gold);font-size:18px">#${pad(p.seat)} ${esc(d.names[p.seat])}</b><button class="link" onclick="P.change()">換座位</button></div>`;
-    if(d.phase==='setup')h+=`<p class="small">等待上帝發牌…</p>`;
+    if(d.phase==='setup')h+=`<p class="small">等待上帝開啟卡池…</p>`;
+    else if(d.drawMode&&!d.drawn[p.seat]){
+      const pool=d.pool||[];
+      h+=p.pending!=null?`<div class="bigcard" style="margin:12px 0;border-color:var(--gold)"><div style="font-size:50px">🂠</div><div style="color:var(--gold);font-weight:700">抽牌中…</div><div class="small">你選了第 ${p.pending+1} 張，等待上帝主機確認</div></div>`
+        :`<p style="font-weight:700;margin:10px 0 6px">🃏 從卡池抽一張牌（剩 ${pool.filter(x=>!x).length} 張）</p>
+        <div class="grid3">${pool.map((t,k)=>`<button ${t?'disabled':''} style="padding:18px 4px;${t?'':'border-color:#7a5a1c;background:linear-gradient(160deg,#2a2010,#18223a)'}" onclick="P.draw(${k})"><div style="font-size:28px">${t?'✖':'🂠'}</div><div class="small">${t?'已被抽走':'第 '+(k+1)+' 張'}</div></button>`).join('')}</div>`;
+    }
     else{
       if(p.show&&c)h+=`<div class="bigcard" style="margin:12px 0;border-color:${col}"><div class="small">你的身分是</div><div class="role" style="color:${col}">${esc(c.role)}</div>
         <div class="pill" style="color:${col};border-color:${col}">${CAMP_NAME[c.camp]}陣營</div><p>${esc(c.desc)}</p>
-        ${c.mates&&c.mates.length?`<p style="color:var(--wolf)">隊友：${c.mates.map(esc).join('、')}</p>`:''}</div>`;
+        ${c.mates&&c.mates.length?`<p style="color:var(--wolf)">隊友：${c.mates.map(esc).join('、')}</p>`:''}
+        ${c.matesPending?'<p class="small" style="color:var(--wolf)">狼隊友會在所有人抽完牌後顯示，請稍後再翻一次牌</p>':''}</div>`;
       else h+=`<div class="bigcard" style="margin:12px 0;border-color:var(--line);padding:40px 20px"><div style="font-size:50px">🂠</div><div class="small">確認周圍沒人偷看再翻牌</div></div>`;
       h+=`<div class="grid2"><button class="btn-teal" onclick="P.flip()">${p.show?'🙈 蓋牌':'👀 翻牌看身分'}</button>
         <button class="${p.confirmed?'btn-green':'btn-primary'}" ${p.confirmed||!p.card?'disabled':''} onclick="P.confirm()">${p.confirmed?'✅ 已確認':'我記住了，回報上帝'}</button></div>`;
@@ -799,7 +860,7 @@ function render(){
   let h=`
   <div class="card">
     <div class="row between">
-      <div class="row"><span style="font-size:24px">🔨</span><h1>狼人殺主控台</h1><span class="pill green">● 自動存檔</span></div>
+      <div class="row"><span style="font-size:24px">🐺</span><h1>狼人殺主控台</h1><span class="pill green">● 自動存檔</span></div>
       <span class="pill violet">${phaseTxt}</span>
     </div>
     <div class="row between" style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px">
@@ -836,13 +897,28 @@ function render(){
       </div>`).join('')}</div>`;
     if(S.phase==='setup'){
       h+=`<div class="row" style="margin-top:12px"><button class="btn-gold" style="flex:1" onclick="A.shuffle()">🎲 隨機發牌</button><button style="flex:1" onclick="A.resetRoles()">↺ 還原板型順序</button></div>
-      <button class="btn-teal btn-block" style="margin-top:10px" onclick="A.startReveal()">🔒 鎖定座位並開始看牌</button>`;
+      ${S.room?`<button class="btn-teal btn-block" style="margin-top:10px" onclick="A.startDraw()">🃏 鎖定座位並開啟卡池（玩家手機抽牌）</button>
+      <button class="btn-block" style="margin-top:8px" onclick="A.startReveal()">🎲 上帝先發好牌，玩家直接翻牌</button>`
+      :`<button class="btn-teal btn-block" style="margin-top:10px" onclick="A.startReveal()">🔒 鎖定座位並開始看牌</button>
+      <div class="small" style="margin-top:6px">想讓玩家用自己手機從卡池抽牌，請先在下方「多手機同步」建立房間。</div>`}`;
     }
   }
   h+=`</div>`;
   h+=`<div class="card">${syncPanel().replace('margin-top:12px','margin:0')}</div>`;
 
-  if(S.phase==='reveal'){
+  if(S.phase==='reveal'&&S.drawMode){
+    const dn=S.seats.filter(x=>x.drawn).length;
+    h+=`<div class="card" style="border-color:#127a8f"><div class="row between"><b>🃏 手機端抽牌進度</b><b style="color:var(--god)">抽 ${dn} / ${N()}・確認 ${done} / ${N()}</b></div>
+      <div class="progress"><i style="width:${dn/N()*100}%"></i></div>
+      <div class="grid2" style="margin:10px 0">${S.seats.map((x,i)=>`<div class="seat" style="padding:8px"><div class="hd" style="margin:0"><span class="no">#${pad(i)}</span>
+        ${x.drawn?`<span class="c-${ROLES[x.role].camp}" style="font-weight:700">${x.role}${x.confirmed?' ✅':''}</span>`:`<span class="pill gold">⏳ 待抽取</span>`}</div>
+        <div class="row between"><span class="small">${esc(x.name)||'—'}</span>${x.drawn?'':`<button class="link" onclick="A.drawFor(${i})">代抽</button>`}</div></div>`).join('')}</div>
+      <div class="small" style="margin-bottom:8px">⚠️ 抽牌期間請保持這個畫面開著，上帝手機負責處理每一次抽牌。沒手機的玩家按「代抽」。</div>
+      <div class="grid2"><button onclick="A.drawRest()" ${dn===N()?'disabled':''}>🎲 其餘全部代抽</button>
+      <button class="btn-primary" ${dn<N()||done<N()?'disabled':''} onclick="A.startNight()">✔ 全員完成，進入第 1 夜</button></div>
+      <button class="link" ${dn<N()?'disabled':''} onclick="if(confirm('不等玩家回報確認，直接開始？'))A.startNight()">不等確認直接開始</button></div>`;
+  }
+  else if(S.phase==='reveal'){
       h+=`<div class="card" style="border-color:#127a8f"><div class="row between"><b>📱 看牌進度</b><b style="color:var(--god)">${done} / ${N()} 人已確認</b></div>
         <div class="progress"><i style="width:${done/N()*100}%"></i></div>
         ${S.room?'<div class="small" style="margin-bottom:8px">玩家正在自己的手機上翻牌，確認後這裡會即時更新。沒手機的玩家可用下方「開啟看牌畫面」。</div>':''}<div class="grid2"><button class="btn-teal" onclick="openReveal()">🃏 開啟看牌畫面</button>
@@ -855,7 +931,7 @@ function render(){
     h+=`<div class="card"><h2><span>👥 全場存活總覽</span><span style="color:var(--vil)">存活 ${alv} / ${N()}</span></h2>
       <div class="grid6">${S.seats.map((s,i)=>`<div class="ov ${s.alive?'':'dead'}" onclick="A.toggleAlive(${i})" title="${esc(s.cause)}">
         ${S.sheriff===i?'<span class="star">👑</span>':''}<b>${pad(i)}</b><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(s.name)||'—'}</div>
-        <div class="r c-${ROLES[s.role].camp}">${s.role}</div></div>`).join('')}</div>
+        <div class="r c-${ROLES[s.role].camp}">${S.drawMode&&S.phase==='reveal'&&!s.drawn?'<span style="color:var(--gold)">待抽</span>':s.role}</div></div>`).join('')}</div>
       <div class="small" style="margin-top:6px">點擊座位可手動更正生死</div></div>`;
   }
   if(S.phase==='night'){
